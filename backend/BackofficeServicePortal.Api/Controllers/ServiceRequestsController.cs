@@ -17,6 +17,7 @@ public class ServiceRequestsController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ServiceRequest>>> GetServiceRequests()
     {
         var serviceRequests = await _dbContext.ServiceRequests
@@ -27,6 +28,8 @@ public class ServiceRequestsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequest>> GetServiceRequestById(int id)
     {
         var serviceRequest = await _dbContext.ServiceRequests.FindAsync(id);
@@ -40,6 +43,8 @@ public class ServiceRequestsController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequest>> CreateServiceRequest(ServiceRequest serviceRequest)
     {
         serviceRequest.CreatedAt = DateTime.UtcNow;
@@ -56,6 +61,9 @@ public class ServiceRequestsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateServiceRequest(int id, ServiceRequest updatedRequest)
     {
         if (id != updatedRequest.Id)
@@ -82,6 +90,8 @@ public class ServiceRequestsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteServiceRequest(int id)
     {
         var serviceRequest = await _dbContext.ServiceRequests.FindAsync(id);

@@ -35,4 +35,20 @@ public class ServiceRequestsController : ControllerBase
 
         return Ok(serviceRequest);
     }
+
+    [HttpPost]
+    public async Task<ActionResult<ServiceRequest>> CreateServiceRequest(ServiceRequest serviceRequest)
+    {
+        serviceRequest.CreatedAt = DateTime.UtcNow;
+        serviceRequest.UpdatedAt = null;
+
+        _dbContext.ServiceRequests.Add(serviceRequest);
+        await _dbContext.SaveChangesAsync();
+
+        return CreatedAtAction(
+            nameof(GetServiceRequestById),
+            new { id = serviceRequest.Id },
+            serviceRequest
+        );
+    }
 }

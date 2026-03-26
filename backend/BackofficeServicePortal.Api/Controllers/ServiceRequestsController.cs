@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BackofficeServicePortal.Api.Controllers;
 
+/// <summary>
+/// Provides CRUD operations for service requests.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
@@ -17,6 +20,10 @@ public class ServiceRequestsController : ControllerBase
         _dbContext = dbContext;
     }
 
+    /// <summary>
+    /// Gets all service requests ordered by creation date in descending order.
+    /// </summary>
+    /// <returns>A list of service requests.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ServiceRequest>>> GetServiceRequests()
@@ -28,6 +35,11 @@ public class ServiceRequestsController : ControllerBase
         return Ok(serviceRequests);
     }
 
+    /// <summary>
+    /// Gets a single service request by its identifier.
+    /// </summary>
+    /// <param name="id">The ID of the service request.</param>
+    /// <returns>The matching service request if found.</returns>
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -43,6 +55,11 @@ public class ServiceRequestsController : ControllerBase
         return Ok(serviceRequest);
     }
 
+    /// <summary>
+    /// Creates a new service request.
+    /// </summary>
+    /// <param name="serviceRequest">The service request to create.</param>
+    /// <returns>The created service request.</returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -61,6 +78,12 @@ public class ServiceRequestsController : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Updates an existing service request.
+    /// </summary>
+    /// <param name="id">The ID of the service request to update.</param>
+    /// <param name="updatedRequest">The updated service request payload.</param>
+    /// <returns>No content if the update is successful.</returns>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -90,6 +113,11 @@ public class ServiceRequestsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Deletes a service request by its identifier.
+    /// </summary>
+    /// <param name="id">The ID of the service request to delete.</param>
+    /// <returns>No content if the deletion is successful.</returns>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

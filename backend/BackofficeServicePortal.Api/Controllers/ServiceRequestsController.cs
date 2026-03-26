@@ -78,4 +78,20 @@ public class ServiceRequestsController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteServiceRequest(int id)
+    {
+        var serviceRequest = await _dbContext.ServiceRequests.FindAsync(id);
+
+        if (serviceRequest == null)
+        {
+            return NotFound();
+        }
+
+        _dbContext.ServiceRequests.Remove(serviceRequest);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }

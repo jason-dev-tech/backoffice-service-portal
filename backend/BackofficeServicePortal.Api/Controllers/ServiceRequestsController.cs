@@ -51,4 +51,31 @@ public class ServiceRequestsController : ControllerBase
             serviceRequest
         );
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateServiceRequest(int id, ServiceRequest updatedRequest)
+    {
+        if (id != updatedRequest.Id)
+        {
+            return BadRequest();
+        }
+
+        var existingRequest = await _dbContext.ServiceRequests.FindAsync(id);
+
+        if (existingRequest == null)
+        {
+            return NotFound();
+        }
+
+        // Update fields
+        existingRequest.Title = updatedRequest.Title;
+        existingRequest.Description = updatedRequest.Description;
+        existingRequest.RequesterName = updatedRequest.RequesterName;
+        existingRequest.Status = updatedRequest.Status;
+        existingRequest.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }

@@ -19,7 +19,10 @@ public class ServiceRequestsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ServiceRequest>>> GetServiceRequests()
     {
-        var serviceRequests = await _dbContext.ServiceRequests.ToListAsync();
+        var serviceRequests = await _dbContext.ServiceRequests
+            .OrderByDescending(sr => sr.CreatedAt)
+            .ToListAsync();
+
         return Ok(serviceRequests);
     }
 
@@ -67,7 +70,6 @@ public class ServiceRequestsController : ControllerBase
             return NotFound();
         }
 
-        // Update fields
         existingRequest.Title = updatedRequest.Title;
         existingRequest.Description = updatedRequest.Description;
         existingRequest.RequesterName = updatedRequest.RequesterName;

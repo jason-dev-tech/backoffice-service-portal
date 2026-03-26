@@ -1,5 +1,6 @@
 using BackofficeServicePortal.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,11 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "REST API for managing service requests in the Backoffice Service Portal."
     });
+
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+
+    options.IncludeXmlComments(xmlPath);
 });
 
 var app = builder.Build();

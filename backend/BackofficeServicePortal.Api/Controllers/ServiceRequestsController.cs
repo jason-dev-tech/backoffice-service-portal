@@ -7,6 +7,7 @@ namespace BackofficeServicePortal.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class ServiceRequestsController : ControllerBase
 {
     private readonly AppDbContext _dbContext;

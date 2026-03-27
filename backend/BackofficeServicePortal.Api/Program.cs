@@ -4,6 +4,7 @@ using System.Reflection;
 using BackofficeServicePortal.Api.Models;
 using BackofficeServicePortal.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using BackofficeServicePortal.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,7 @@ builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
 builder.Services.AddSingleton<ServiceRequestAuditLogService>();
+builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

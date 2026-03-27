@@ -1,9 +1,8 @@
-using BackofficeServicePortal.Api.Data;
 using BackofficeServicePortal.Api.DTOs.ServiceRequests;
 using BackofficeServicePortal.Api.Models;
 using BackofficeServicePortal.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using BackofficeServicePortal.Api.Services.Interfaces;
 
 namespace BackofficeServicePortal.Api.Controllers;
 
@@ -15,14 +14,14 @@ namespace BackofficeServicePortal.Api.Controllers;
 [Produces("application/json")]
 public class ServiceRequestsController : ControllerBase
 {
-    private readonly AppDbContext _dbContext;
+    private readonly IServiceRequestService _serviceRequestService;
     private readonly ServiceRequestAuditLogService _auditLogService;
 
     public ServiceRequestsController(
-        AppDbContext dbContext,
+        IServiceRequestService serviceRequestService,
         ServiceRequestAuditLogService auditLogService)
     {
-        _dbContext = dbContext;
+        _serviceRequestService = serviceRequestService;
         _auditLogService = auditLogService;
     }
 
@@ -34,14 +33,7 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ServiceRequestResponseDto>>> GetServiceRequests()
     {
-        var serviceRequests = await _dbContext.ServiceRequests
-            .OrderByDescending(sr => sr.CreatedAt)
-            .ToListAsync();
-
-        var response = serviceRequests
-            .Select(sr => sr.ToResponseDto())
-            .ToList();
-
+        var response = await _serviceRequestService.GetAllAsync();
         return Ok(response);
     }
 
@@ -55,14 +47,14 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestResponseDto>> GetServiceRequestById(int id)
     {
-        var serviceRequest = await _dbContext.ServiceRequests.FindAsync(id);
+        var response = await _serviceRequestService.GetByIdAsync(id);
 
-        if (serviceRequest == null)
+        if (response == null)
         {
             return NotFound();
         }
 
-        return Ok(serviceRequest.ToResponseDto());
+        return Ok(response);
     }
 
     /// <summary>
@@ -75,31 +67,12 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestResponseDto>> CreateServiceRequest(CreateServiceRequestDto dto)
     {
-        var serviceRequest = new ServiceRequest
-        {
-            Title = dto.Title,
-            Description = dto.Description,
-            RequesterName = dto.RequesterName,
-            Status = "Open",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null
-        };
-
-        _dbContext.ServiceRequests.Add(serviceRequest);
-        await _dbContext.SaveChangesAsync();
-
-        await _auditLogService.LogAsync(new ServiceRequestAuditLog
-        {
-            ServiceRequestId = serviceRequest.Id,
-            Action = "Created",
-            TimestampUtc = DateTime.UtcNow,
-            Details = $"Service request '{serviceRequest.Title}' was created."
-        });
+        var response = await _serviceRequestService.CreateAsync(dto);
 
         return CreatedAtAction(
             nameof(GetServiceRequestById),
-            new { id = serviceRequest.Id },
-            serviceRequest.ToResponseDto()
+            new { id = response.Id },
+            response
         );
     }
 
@@ -117,30 +90,14 @@ public class ServiceRequestsController : ControllerBase
         int id,
         UpdateServiceRequestDto dto)
     {
-        var existingRequest = await _dbContext.ServiceRequests.FindAsync(id);
+        var response = await _serviceRequestService.UpdateAsync(id, dto);
 
-        if (existingRequest == null)
+        if (response == null)
         {
             return NotFound();
         }
 
-        existingRequest.Title = dto.Title;
-        existingRequest.Description = dto.Description;
-        existingRequest.RequesterName = dto.RequesterName;
-        existingRequest.Status = dto.Status;
-        existingRequest.UpdatedAt = DateTime.UtcNow;
-
-        await _dbContext.SaveChangesAsync();
-
-        await _auditLogService.LogAsync(new ServiceRequestAuditLog
-        {
-            ServiceRequestId = existingRequest.Id,
-            Action = "Updated",
-            TimestampUtc = DateTime.UtcNow,
-            Details = $"Service request '{existingRequest.Title}' was updated."
-        });
-
-        return Ok(existingRequest.ToResponseDto());
+        return Ok(response);
     }
 
     /// <summary>
@@ -153,26 +110,12 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteServiceRequest(int id)
     {
-        var serviceRequest = await _dbContext.ServiceRequests.FindAsync(id);
+        var deleted = await _serviceRequestService.DeleteAsync(id);
 
-        if (serviceRequest == null)
+        if (!deleted)
         {
             return NotFound();
         }
-
-        var deletedRequestId = serviceRequest.Id;
-        var deletedRequestTitle = serviceRequest.Title;
-
-        _dbContext.ServiceRequests.Remove(serviceRequest);
-        await _dbContext.SaveChangesAsync();
-
-        await _auditLogService.LogAsync(new ServiceRequestAuditLog
-        {
-            ServiceRequestId = deletedRequestId,
-            Action = "Deleted",
-            TimestampUtc = DateTime.UtcNow,
-            Details = $"Service request '{deletedRequestTitle}' was deleted."
-        });
 
         return NoContent();
     }

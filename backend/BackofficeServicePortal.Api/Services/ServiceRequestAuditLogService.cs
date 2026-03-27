@@ -27,6 +27,14 @@ public class ServiceRequestAuditLogService
     /// </summary>
     public async Task LogAsync(ServiceRequestAuditLog log)
     {
-        await _collection.InsertOneAsync(log);
+        try
+        {
+            await _collection.InsertOneAsync(log);
+        }
+        catch (Exception ex)
+        {
+            // Log error but do not break the main flow
+            Console.WriteLine($"[MongoDB] Failed to write audit log: {ex.Message}");
+        }
     }
 }

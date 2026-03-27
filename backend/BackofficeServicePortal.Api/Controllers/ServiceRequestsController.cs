@@ -1,5 +1,6 @@
 using BackofficeServicePortal.Api.Data;
 using BackofficeServicePortal.Api.Models;
+using BackofficeServicePortal.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,10 +15,14 @@ namespace BackofficeServicePortal.Api.Controllers;
 public class ServiceRequestsController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
+    private readonly ServiceRequestAuditLogService _auditLogService;
 
-    public ServiceRequestsController(AppDbContext dbContext)
+    public ServiceRequestsController(
+        AppDbContext dbContext,
+        ServiceRequestAuditLogService auditLogService)
     {
         _dbContext = dbContext;
+        _auditLogService = auditLogService;
     }
 
     /// <summary>
@@ -71,6 +76,14 @@ public class ServiceRequestsController : ControllerBase
         _dbContext.ServiceRequests.Add(serviceRequest);
         await _dbContext.SaveChangesAsync();
 
+        await _auditLogService.LogAsync(new ServiceRequestAuditLog
+        {
+            ServiceRequestId = serviceRequest.Id,
+            Action = "Created",
+            TimestampUtc = DateTime.UtcNow,
+            Details = $"Service request '{serviceRequest.Title}' was created."
+        });
+
         return CreatedAtAction(
             nameof(GetServiceRequestById),
             new { id = serviceRequest.Id },
@@ -110,6 +123,14 @@ public class ServiceRequestsController : ControllerBase
 
         await _dbContext.SaveChangesAsync();
 
+        await _auditLogService.LogAsync(new ServiceRequestAuditLog
+        {
+            ServiceRequestId = existingRequest.Id,
+            Action = "Updated",
+            TimestampUtc = DateTime.UtcNow,
+            Details = $"Service request '{existingRequest.Title}' was updated."
+        });
+
         return NoContent();
     }
 
@@ -130,8 +151,19 @@ public class ServiceRequestsController : ControllerBase
             return NotFound();
         }
 
+        var deletedRequestId = serviceRequest.Id;
+        var deletedRequestTitle = serviceRequest.Title;
+
         _dbContext.ServiceRequests.Remove(serviceRequest);
         await _dbContext.SaveChangesAsync();
+
+        await _auditLogService.LogAsync(new ServiceRequestAuditLog
+        {
+            ServiceRequestId = deletedRequestId,
+            Action = "Deleted",
+            TimestampUtc = DateTime.UtcNow,
+            Details = $"Service request '{deletedRequestTitle}' was deleted."
+        });
 
         return NoContent();
     }

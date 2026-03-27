@@ -167,4 +167,17 @@ public class ServiceRequestsController : ControllerBase
 
         return NoContent();
     }
+
+    /// <summary>
+    /// Gets audit logs for a specific service request.
+    /// </summary>
+    /// <param name="id">The ID of the service request.</param>
+    /// <returns>A list of audit logs related to the service request.</returns>
+    [HttpGet("{id}/audit-logs")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ServiceRequestAuditLog>>> GetAuditLogs(int id)
+    {
+        var logs = await _auditLogService.GetLogsByServiceRequestIdAsync(id);
+        return Ok(logs);
+    }
 }

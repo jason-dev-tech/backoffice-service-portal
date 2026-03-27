@@ -37,4 +37,15 @@ public class ServiceRequestAuditLogService
             Console.WriteLine($"[MongoDB] Failed to write audit log: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Gets audit log entries for a specific service request.
+    /// </summary>
+    public async Task<List<ServiceRequestAuditLog>> GetLogsByServiceRequestIdAsync(int serviceRequestId)
+    {
+        return await _collection
+            .Find(log => log.ServiceRequestId == serviceRequestId)
+            .SortBy(log => log.TimestampUtc)
+            .ToListAsync();
+    }
 }

@@ -40,6 +40,20 @@ builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+var allowedOrigins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -66,6 +80,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("FrontendPolicy");
 
 app.UseAuthorization();
 

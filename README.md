@@ -1,8 +1,8 @@
 # Backoffice Service Portal API
 
-A production-style backend service built with **ASP.NET Core Web API (.NET 8)** and an **Angular frontend**, demonstrating a full-stack architecture with a dual-database design:
+A production-style full-stack project built with **ASP.NET Core Web API (.NET 8)** and **Angular**, demonstrating a dual-database architecture with:
 
-- **PostgreSQL** for primary data
+- **PostgreSQL** for primary business data
 - **MongoDB** for audit logging
 
 > ⚠️ This repository is provided for **demonstration and portfolio purposes only**. It is **not an open-source project**, and all rights are reserved.
@@ -15,10 +15,10 @@ A production-style backend service built with **ASP.NET Core Web API (.NET 8)** 
 - Angular frontend consuming ASP.NET Core Web API
 - DTO-based API design (no direct entity exposure)
 - Service layer architecture (Controller → Service → Data)
+- Centralized validation handling
 - PostgreSQL (EF Core) for primary business data
 - MongoDB for audit logging (Created, Updated, Deleted)
 - Docker-based MongoDB setup
-- Centralized validation handling
 - Swagger API documentation
 - Fail-safe logging (MongoDB failures do not break API)
 
@@ -26,13 +26,14 @@ A production-style backend service built with **ASP.NET Core Web API (.NET 8)** 
 
 ## 🧱 Architecture
 
-- **Frontend**: Angular (SPA)
+- **Frontend**: Angular SPA
 - **Backend**: ASP.NET Core Web API (.NET 8)
 - **Architecture Pattern**: Controller → Service → DbContext
-- **Primary Data Store**: PostgreSQL  
-- **Audit Logging**: MongoDB  
-- **API Design**: DTO-based contract separation  
-- **Validation**: DataAnnotations + centralized error handling  
+- **Primary Data Store**: PostgreSQL
+- **Audit Logging**: MongoDB
+- **API Design**: DTO-based contract separation
+- **Validation**: DataAnnotations + centralized error handling
+- **Cross-Origin Access**: CORS configured through application settings
 
 ---
 
@@ -65,13 +66,11 @@ A production-style backend service built with **ASP.NET Core Web API (.NET 8)** 
 
 ## 🌐 Frontend Configuration
 
-The Angular frontend uses environment-based configuration for API endpoints.
-
-### Development Configuration
+The Angular frontend uses environment-based configuration for the backend API URL.
 
 File:
 
-```
+```text
 frontend/src/environments/environment.ts
 ```
 
@@ -84,10 +83,9 @@ export const environment = {
 };
 ```
 
-### ⚠️ Important
+### Important
 
-- Replace `<your-port>` with the actual port of your ASP.NET Core Web API.
-- You can find the port after running:
+Replace `<your-port>` with the actual port of your ASP.NET Core Web API after running:
 
 ```bash
 dotnet run
@@ -95,15 +93,37 @@ dotnet run
 
 Example output:
 
-```
+```text
 Now listening on: https://localhost:<your-port>
 ```
 
-Then update:
+Then update the value in `environment.ts` accordingly.
 
-```ts
-apiBaseUrl: 'https://localhost:<your-port>'
+---
+
+## 🔒 Backend CORS Configuration
+
+The backend reads allowed frontend origins from configuration instead of hardcoding them in `Program.cs`.
+
+File:
+
+```text
+BackofficeServicePortal.Api/appsettings.json
 ```
+
+Example:
+
+```json
+"AllowedOrigins": [
+  "http://localhost:<your-frontend-port>"
+]
+```
+
+### Important
+
+Replace `<your-frontend-port>` with the actual frontend origin used during local development.
+
+For example, if Angular runs on its default local port, update the value accordingly before testing frontend-to-backend integration.
 
 ---
 
@@ -149,6 +169,7 @@ Sensitive configuration values are managed using **.NET User Secrets**.
 
 Required keys:
 
+- `ConnectionStrings:DefaultConnection`
 - `MongoDbSettings:ConnectionString`
 - `MongoDbSettings:DatabaseName`
 - `MongoDbSettings:AuditLogsCollectionName`
@@ -160,6 +181,7 @@ Required keys:
 ### Backend
 
 ```bash
+cd BackofficeServicePortal.Api
 dotnet run
 ```
 
@@ -170,10 +192,10 @@ cd frontend
 ng serve
 ```
 
-Open:
+Open the frontend in your browser:
 
-```
-http://localhost:<your-port>
+```text
+http://localhost:<your-frontend-port>
 ```
 
 ---
@@ -184,8 +206,9 @@ http://localhost:<your-port>
 - DTO layer prevents over-posting and entity exposure
 - Centralized validation improves API consistency
 - Dual-database architecture (SQL + NoSQL)
-- Resilient logging (fail-safe MongoDB integration)
-- Full-stack integration (Angular + ASP.NET Core)
+- Resilient logging with fail-safe MongoDB integration
+- Configuration-driven CORS policy
+- Full-stack integration with Angular and ASP.NET Core Web API
 
 ---
 
@@ -193,7 +216,9 @@ http://localhost:<your-port>
 
 - MongoDB is used for audit logs only
 - PostgreSQL remains the source of truth
-- Frontend requires manual API port configuration for local development
+- Frontend API base URL is configured through Angular environment files
+- Backend allowed origins are configured through `appsettings.json`
+- Local development requires updating placeholder ports before running frontend-backend integration
 
 ---
 
@@ -202,7 +227,7 @@ http://localhost:<your-port>
 - Authentication & Authorization (JWT)
 - Role-based access control
 - FluentValidation integration
-- Unit & integration testing
+- Unit and integration testing
 - Cloud deployment (Azure / AWS)
 - CI/CD pipeline
 

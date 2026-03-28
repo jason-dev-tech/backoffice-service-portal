@@ -1,6 +1,9 @@
 # Backoffice Service Portal API
 
-A production-style backend service built with **.NET 8**, demonstrating a clean architecture approach with a dual-database design using **PostgreSQL** for primary data and **MongoDB** for audit logging.
+A production-style backend service built with **ASP.NET Core Web API (.NET 8)** and an **Angular frontend**, demonstrating a full-stack architecture with a dual-database design:
+
+- **PostgreSQL** for primary data
+- **MongoDB** for audit logging
 
 > ⚠️ This repository is provided for **demonstration and portfolio purposes only**. It is **not an open-source project**, and all rights are reserved.
 
@@ -9,6 +12,7 @@ A production-style backend service built with **.NET 8**, demonstrating a clean 
 ## 🚀 Features
 
 - Full CRUD operations for Service Requests
+- Angular frontend consuming ASP.NET Core Web API
 - DTO-based API design (no direct entity exposure)
 - Service layer architecture (Controller → Service → Data)
 - PostgreSQL (EF Core) for primary business data
@@ -22,21 +26,20 @@ A production-style backend service built with **.NET 8**, demonstrating a clean 
 
 ## 🧱 Architecture
 
+- **Frontend**: Angular (SPA)
+- **Backend**: ASP.NET Core Web API (.NET 8)
+- **Architecture Pattern**: Controller → Service → DbContext
 - **Primary Data Store**: PostgreSQL  
 - **Audit Logging**: MongoDB  
-- **Backend Framework**: ASP.NET Core Web API  
-- **ORM**: Entity Framework Core  
-- **Architecture Pattern**: Controller → Service → DbContext  
 - **API Design**: DTO-based contract separation  
 - **Validation**: DataAnnotations + centralized error handling  
-- **Containerization**: Docker  
 
 ---
 
 ## 📦 Tech Stack
 
-- .NET 8
-- ASP.NET Core Web API
+- ASP.NET Core Web API (.NET 8)
+- Angular
 - Entity Framework Core
 - PostgreSQL
 - MongoDB
@@ -60,12 +63,56 @@ A production-style backend service built with **.NET 8**, demonstrating a clean 
 
 ---
 
+## 🌐 Frontend Configuration
+
+The Angular frontend uses environment-based configuration for API endpoints.
+
+### Development Configuration
+
+File:
+
+```
+frontend/src/environments/environment.ts
+```
+
+Example:
+
+```ts
+export const environment = {
+  production: false,
+  apiBaseUrl: 'https://localhost:<your-port>'
+};
+```
+
+### ⚠️ Important
+
+- Replace `<your-port>` with the actual port of your ASP.NET Core Web API.
+- You can find the port after running:
+
+```bash
+dotnet run
+```
+
+Example output:
+
+```
+Now listening on: https://localhost:<your-port>
+```
+
+Then update:
+
+```ts
+apiBaseUrl: 'https://localhost:<your-port>'
+```
+
+---
+
 ## 🧪 Sample Request
 
 ```json
 {
   "title": "Printer issue",
-  "description": "The office printer is showing a paper jam error and cannot print.",
+  "description": "The office printer is not working.",
   "requesterName": "Jason"
 }
 ```
@@ -98,35 +145,35 @@ docker run -d -p <host-port>:<container-port> --name mongodb mongo
 
 ## 🔐 Configuration
 
-Sensitive configuration values are managed using **.NET User Secrets** and are not stored in the repository.
+Sensitive configuration values are managed using **.NET User Secrets**.
 
-Required configuration keys:
+Required keys:
 
 - `MongoDbSettings:ConnectionString`
 - `MongoDbSettings:DatabaseName`
 - `MongoDbSettings:AuditLogsCollectionName`
 
-Example:
-
-```bash
-dotnet user-secrets set "MongoDbSettings:ConnectionString" "<your-mongodb-connection-string>"
-dotnet user-secrets set "MongoDbSettings:DatabaseName" "<your-database-name>"
-dotnet user-secrets set "MongoDbSettings:AuditLogsCollectionName" "<your-collection-name>"
-```
-
 ---
 
 ## ▶️ Run the Application
 
+### Backend
+
 ```bash
-dotnet build
 dotnet run
 ```
 
-Swagger UI:
+### Frontend
+
+```bash
+cd frontend
+ng serve
+```
+
+Open:
 
 ```
-http://localhost:<your-port>/swagger
+http://localhost:<your-port>
 ```
 
 ---
@@ -138,7 +185,7 @@ http://localhost:<your-port>/swagger
 - Centralized validation improves API consistency
 - Dual-database architecture (SQL + NoSQL)
 - Resilient logging (fail-safe MongoDB integration)
-- Dependency Injection with interface-based services
+- Full-stack integration (Angular + ASP.NET Core)
 
 ---
 
@@ -146,14 +193,14 @@ http://localhost:<your-port>/swagger
 
 - MongoDB is used for audit logs only
 - PostgreSQL remains the source of truth
-- Audit logging does not impact primary operations
+- Frontend requires manual API port configuration for local development
 
 ---
 
 ## 📈 Future Improvements
 
-- Authentication & Authorization (JWT / Identity)
-- Role-based access control (RBAC)
+- Authentication & Authorization (JWT)
+- Role-based access control
 - FluentValidation integration
 - Unit & integration testing
 - Cloud deployment (Azure / AWS)

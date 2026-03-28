@@ -79,7 +79,7 @@ Example:
 ```ts
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://localhost:<your-port>'
+  apiBaseUrl: 'https://localhost:<your-backend-port>'
 };
 ```
 

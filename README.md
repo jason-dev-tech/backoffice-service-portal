@@ -15,18 +15,19 @@ dual-database design:
 
 ## 🚀 Features
 
--   Full CRUD operations for Service Requests
+-   Full CRUD operations for Service Requests (Create, Read, Update,
+    Delete)
 -   Angular frontend integrated with ASP.NET Core Web API
 -   Reactive state management using **RxJS + AsyncPipe (zoneless
     Angular)**
 -   DTO-based API design (no direct entity exposure)
 -   Service layer architecture (Controller → Service → Data)
 -   Centralized validation handling
--   PostgreSQL (EF Core) for core data
+-   PostgreSQL (EF Core) for core data persistence
 -   MongoDB for audit logging (Created, Updated, Deleted)
--   Docker-based MongoDB setup
+-   Docker-based MongoDB setup with container lifecycle management
 -   Swagger API documentation
--   Fail-safe logging (MongoDB failures do not break API)
+-   Fail-safe logging (MongoDB failures do not break API operations)
 
 ------------------------------------------------------------------------
 
@@ -133,9 +134,11 @@ docker ps
 
 ### Notes
 
--   `docker run` should be used **only once** (container creation)
--   Use `docker start/stop` afterwards
--   Re-running `docker run` with the same name will cause a conflict
+-   `docker run` should be used **only once** (initial container
+    creation)
+-   Use `docker start` and `docker stop` for subsequent runs
+-   Re-running `docker run` with the same container name will cause a
+    conflict
 
 ------------------------------------------------------------------------
 
@@ -191,13 +194,13 @@ Open:
 
 ## 💡 Key Design Highlights
 
--   Clean separation of concerns
--   DTO layer prevents over-posting
+-   Clean separation of concerns (Controller / Service / Data)
+-   DTO layer prevents over-posting and entity exposure
 -   Reactive frontend using AsyncPipe (zoneless Angular)
 -   Dual-database architecture (SQL + NoSQL)
 -   Fail-safe logging design
 -   Environment-based configuration
--   Full-stack integration
+-   Full-stack integration with clear boundaries
 
 ------------------------------------------------------------------------
 
@@ -206,6 +209,7 @@ Open:
 -   MongoDB is used only for audit logs
 -   PostgreSQL is the source of truth
 -   Update environment ports before running locally
+-   Backend must run on HTTPS for frontend integration
 
 ------------------------------------------------------------------------
 
@@ -213,8 +217,8 @@ Open:
 
 -   Authentication & Authorization (JWT)
 -   Role-based access control
--   FluentValidation
--   Unit & integration tests
+-   FluentValidation integration
+-   Unit & integration testing
 -   Cloud deployment (Azure / AWS)
 -   CI/CD pipeline
 

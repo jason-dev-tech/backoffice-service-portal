@@ -1,135 +1,147 @@
 # Backoffice Service Portal API
 
-A production-style full-stack project built with **ASP.NET Core Web API (.NET 8)** and **Angular**, demonstrating a dual-database architecture with:
+A production-style full-stack project built with **ASP.NET Core Web API
+(.NET 8)** and **Angular**, demonstrating a scalable architecture with a
+dual-database design:
 
-- **PostgreSQL** for primary business data
-- **MongoDB** for audit logging
+-   **PostgreSQL** for primary business data
+-   **MongoDB (Docker-based)** for audit logging
 
-> ⚠️ This repository is provided for **demonstration and portfolio purposes only**. It is **not an open-source project**, and all rights are reserved.
+> ⚠️ This repository is provided for **demonstration and portfolio
+> purposes only**. It is **not an open-source project**, and all rights
+> are reserved.
 
----
+------------------------------------------------------------------------
 
 ## 🚀 Features
 
-- Full CRUD operations for Service Requests
-- Angular frontend consuming ASP.NET Core Web API
-- DTO-based API design (no direct entity exposure)
-- Service layer architecture (Controller → Service → Data)
-- Centralized validation handling
-- PostgreSQL (EF Core) for primary business data
-- MongoDB for audit logging (Created, Updated, Deleted)
-- Docker-based MongoDB setup
-- Swagger API documentation
-- Fail-safe logging (MongoDB failures do not break API)
+-   Full CRUD operations for Service Requests
+-   Angular frontend integrated with ASP.NET Core Web API
+-   Reactive state management using **RxJS + AsyncPipe (zoneless
+    Angular)**
+-   DTO-based API design (no direct entity exposure)
+-   Service layer architecture (Controller → Service → Data)
+-   Centralized validation handling
+-   PostgreSQL (EF Core) for core data
+-   MongoDB for audit logging (Created, Updated, Deleted)
+-   Docker-based MongoDB setup
+-   Swagger API documentation
+-   Fail-safe logging (MongoDB failures do not break API)
 
----
+------------------------------------------------------------------------
 
 ## 🧱 Architecture
 
-- **Frontend**: Angular SPA
-- **Backend**: ASP.NET Core Web API (.NET 8)
-- **Architecture Pattern**: Controller → Service → DbContext
-- **Primary Data Store**: PostgreSQL
-- **Audit Logging**: MongoDB
-- **API Design**: DTO-based contract separation
-- **Validation**: DataAnnotations + centralized error handling
-- **Cross-Origin Access**: CORS configured through application settings
+-   **Frontend**: Angular (SPA)
+-   **Backend**: ASP.NET Core Web API (.NET 8)
+-   **Pattern**: Controller → Service → DbContext
+-   **Primary Database**: PostgreSQL
+-   **Audit Logging**: MongoDB
+-   **API Contract**: DTO-based separation
+-   **Validation**: DataAnnotations + centralized error handling
+-   **CORS**: Configuration-driven (no hardcoding)
 
----
+------------------------------------------------------------------------
 
 ## 📦 Tech Stack
 
-- ASP.NET Core Web API (.NET 8)
-- Angular
-- Entity Framework Core
-- PostgreSQL
-- MongoDB
-- Docker
+-   ASP.NET Core Web API (.NET 8)
+-   Angular (zoneless, AsyncPipe)
+-   Entity Framework Core
+-   PostgreSQL
+-   MongoDB
+-   Docker
 
----
+------------------------------------------------------------------------
 
 ## 📡 API Endpoints
 
 ### Service Requests
 
-- `GET /api/ServiceRequests`
-- `GET /api/ServiceRequests/{id}`
-- `POST /api/ServiceRequests`
-- `PUT /api/ServiceRequests/{id}`
-- `DELETE /api/ServiceRequests/{id}`
+-   `GET /api/ServiceRequests`
+-   `GET /api/ServiceRequests/{id}`
+-   `POST /api/ServiceRequests`
+-   `PUT /api/ServiceRequests/{id}`
+-   `DELETE /api/ServiceRequests/{id}`
 
 ### Audit Logs
 
-- `GET /api/ServiceRequests/{id}/audit-logs`
+-   `GET /api/ServiceRequests/{id}/audit-logs`
 
----
+------------------------------------------------------------------------
 
 ## 🌐 Frontend Configuration
 
-The Angular frontend uses environment-based configuration for the backend API URL.
-
 File:
 
-```text
-frontend/src/environments/environment.ts
-```
+    frontend/src/environments/environment.ts
 
 Example:
 
-```ts
+``` ts
 export const environment = {
   production: false,
   apiBaseUrl: 'https://localhost:<your-backend-port>'
 };
 ```
 
-### Important
-
-Replace `<your-port>` with the actual port of your ASP.NET Core Web API after running:
-
-```bash
-dotnet run
-```
-
-Example output:
-
-```text
-Now listening on: https://localhost:<your-port>
-```
-
-Then update the value in `environment.ts` accordingly.
-
----
+------------------------------------------------------------------------
 
 ## 🔒 Backend CORS Configuration
 
-The backend reads allowed frontend origins from configuration instead of hardcoding them in `Program.cs`.
-
 File:
 
-```text
-BackofficeServicePortal.Api/appsettings.json
-```
+    BackofficeServicePortal.Api/appsettings.json
 
 Example:
 
-```json
+``` json
 "AllowedOrigins": [
   "http://localhost:<your-frontend-port>"
 ]
 ```
 
-### Important
+------------------------------------------------------------------------
 
-Replace `<your-frontend-port>` with the actual frontend origin used during local development.
+## 🐳 Docker (MongoDB Setup)
 
-For example, if Angular runs on its default local port, update the value accordingly before testing frontend-to-backend integration.
+MongoDB is used for audit logging and runs locally via Docker.
 
----
+### First-time setup
+
+``` bash
+docker run -d -p <host-port>:<container-port> --name mongodb mongo
+```
+
+### Start container
+
+``` bash
+docker start mongodb
+```
+
+### Stop container
+
+``` bash
+docker stop mongodb
+```
+
+### Check status
+
+``` bash
+docker ps
+```
+
+### Notes
+
+-   `docker run` should be used **only once** (container creation)
+-   Use `docker start/stop` afterwards
+-   Re-running `docker run` with the same name will cause a conflict
+
+------------------------------------------------------------------------
 
 ## 🧪 Sample Request
 
-```json
+``` json
 {
   "title": "Printer issue",
   "description": "The office printer is not working.",
@@ -137,11 +149,11 @@ For example, if Angular runs on its default local port, update the value accordi
 }
 ```
 
----
+------------------------------------------------------------------------
 
-## 🧪 Sample Validation Error Response
+## 🧪 Sample Validation Error
 
-```json
+``` json
 {
   "message": "Validation failed",
   "errors": [
@@ -153,85 +165,60 @@ For example, if Angular runs on its default local port, update the value accordi
 }
 ```
 
----
-
-## 🐳 Running MongoDB (Docker)
-
-```bash
-docker run -d -p <host-port>:<container-port> --name mongodb mongo
-```
-
----
-
-## 🔐 Configuration
-
-Sensitive configuration values are managed using **.NET User Secrets**.
-
-Required keys:
-
-- `ConnectionStrings:DefaultConnection`
-- `MongoDbSettings:ConnectionString`
-- `MongoDbSettings:DatabaseName`
-- `MongoDbSettings:AuditLogsCollectionName`
-
----
+------------------------------------------------------------------------
 
 ## ▶️ Run the Application
 
 ### Backend
 
-```bash
+``` bash
 cd BackofficeServicePortal.Api
 dotnet run
 ```
 
 ### Frontend
 
-```bash
+``` bash
 cd frontend
 ng serve
 ```
 
-Open the frontend in your browser:
+Open:
 
-```text
-http://localhost:<your-frontend-port>
-```
+    http://localhost:<your-frontend-port>
 
----
+------------------------------------------------------------------------
 
 ## 💡 Key Design Highlights
 
-- Clean separation of concerns (Controller / Service / Data)
-- DTO layer prevents over-posting and entity exposure
-- Centralized validation improves API consistency
-- Dual-database architecture (SQL + NoSQL)
-- Resilient logging with fail-safe MongoDB integration
-- Configuration-driven CORS policy
-- Full-stack integration with Angular and ASP.NET Core Web API
+-   Clean separation of concerns
+-   DTO layer prevents over-posting
+-   Reactive frontend using AsyncPipe (zoneless Angular)
+-   Dual-database architecture (SQL + NoSQL)
+-   Fail-safe logging design
+-   Environment-based configuration
+-   Full-stack integration
 
----
+------------------------------------------------------------------------
 
 ## 📌 Notes
 
-- MongoDB is used for audit logs only
-- PostgreSQL remains the source of truth
-- Frontend API base URL is configured through Angular environment files
-- Backend allowed origins are configured through `appsettings.json`
-- Local development requires updating placeholder ports before running frontend-backend integration
+-   MongoDB is used only for audit logs
+-   PostgreSQL is the source of truth
+-   Update environment ports before running locally
 
----
+------------------------------------------------------------------------
 
 ## 📈 Future Improvements
 
-- Authentication & Authorization (JWT)
-- Role-based access control
-- FluentValidation integration
-- Unit and integration testing
-- Cloud deployment (Azure / AWS)
-- CI/CD pipeline
+-   Authentication & Authorization (JWT)
+-   Role-based access control
+-   FluentValidation
+-   Unit & integration tests
+-   Cloud deployment (Azure / AWS)
+-   CI/CD pipeline
 
----
+------------------------------------------------------------------------
 
 ## 👤 Author
 

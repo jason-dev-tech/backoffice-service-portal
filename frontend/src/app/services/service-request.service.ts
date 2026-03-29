@@ -10,6 +10,13 @@ export type CreateServiceRequestRequest = {
   requesterName: string;
 };
 
+export type UpdateServiceRequestRequest = {
+  title: string;
+  description: string;
+  requesterName: string;
+  status: string;
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -23,5 +30,12 @@ export class ServiceRequestService {
 
   createServiceRequest(payload: CreateServiceRequestRequest): Observable<ServiceRequest> {
     return this.http.post<ServiceRequest>(this.apiUrl, payload);
+  }
+
+  updateServiceRequest(
+    id: number,
+    payload: UpdateServiceRequestRequest,
+  ): Observable<ServiceRequest> {
+    return this.http.put<ServiceRequest>(`${this.apiUrl}/${id}`, payload);
   }
 }

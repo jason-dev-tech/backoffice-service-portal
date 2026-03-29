@@ -125,3 +125,20 @@ button:disabled {
   background-color: #93c5fd;
   cursor: not-allowed;
 }
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.form-group select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.secondary-button {
+  background-color: #6b7280;
+}

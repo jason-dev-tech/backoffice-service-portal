@@ -4,6 +4,7 @@ import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs
 import {
   CreateServiceRequestRequest,
   ServiceRequestService,
+  UpdateServiceRequestRequest,
 } from './services/service-request.service';
 import { ServiceRequest } from './models/service-request.model';
 
@@ -27,10 +28,12 @@ export class App {
     title: '',
     description: '',
     requesterName: '',
+    status: 'Open',
   };
 
   createErrorMessage = '';
   isSubmitting = false;
+  editRequestId: number | null = null;
 
   viewState$ = this.refreshTrigger$.pipe(
     switchMap(() =>
@@ -60,9 +63,22 @@ export class App {
     ),
   );
 
-  submitCreateForm(): void {
+  get isEditMode(): boolean {
+    return this.editRequestId !== null;
+  }
+
+  submitForm(): void {
     this.createErrorMessage = '';
 
+    if (this.isEditMode) {
+      this.submitEditForm();
+      return;
+    }
+
+    this.submitCreateForm();
+  }
+
+  submitCreateForm(): void {
     const payload: CreateServiceRequestRequest = {
       title: this.createForm.title.trim(),
       description: this.createForm.description.trim(),
@@ -78,11 +94,7 @@ export class App {
 
     this.serviceRequestService.createServiceRequest(payload).subscribe({
       next: () => {
-        this.createForm = {
-          title: '',
-          description: '',
-          requesterName: '',
-        };
+        this.resetForm();
         this.isSubmitting = false;
         this.refreshTrigger$.next();
       },
@@ -92,5 +104,65 @@ export class App {
         this.isSubmitting = false;
       },
     });
+  }
+
+  submitEditForm(): void {
+    if (this.editRequestId === null) {
+      return;
+    }
+
+    const payload: UpdateServiceRequestRequest = {
+      title: this.createForm.title.trim(),
+      description: this.createForm.description.trim(),
+      requesterName: this.createForm.requesterName.trim(),
+      status: this.createForm.status.trim(),
+    };
+
+    if (!payload.title || !payload.description || !payload.requesterName || !payload.status) {
+      this.createErrorMessage = 'All fields are required.';
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    this.serviceRequestService.updateServiceRequest(this.editRequestId, payload).subscribe({
+      next: () => {
+        this.resetForm();
+        this.isSubmitting = false;
+        this.refreshTrigger$.next();
+      },
+      error: (error) => {
+        console.error('Failed to update service request', error);
+        this.createErrorMessage = 'Failed to update service request.';
+        this.isSubmitting = false;
+      },
+    });
+  }
+
+  startEdit(request: ServiceRequest): void {
+    this.editRequestId = request.id;
+    this.createErrorMessage = '';
+
+    this.createForm = {
+      title: request.title,
+      description: request.description,
+      requesterName: request.requesterName,
+      status: request.status,
+    };
+  }
+
+  cancelEdit(): void {
+    this.resetForm();
+  }
+
+  resetForm(): void {
+    this.editRequestId = null;
+    this.createErrorMessage = '';
+    this.createForm = {
+      title: '',
+      description: '',
+      requesterName: '',
+      status: 'Open',
+    };
   }
 }

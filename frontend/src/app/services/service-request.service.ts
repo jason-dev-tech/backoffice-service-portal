@@ -38,4 +38,8 @@ export class ServiceRequestService {
   ): Observable<ServiceRequest> {
     return this.http.put<ServiceRequest>(`${this.apiUrl}/${id}`, payload);
   }
+
+  deleteServiceRequest(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

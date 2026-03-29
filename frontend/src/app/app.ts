@@ -32,7 +32,9 @@ export class App {
   };
 
   createErrorMessage = '';
+  deleteErrorMessage = '';
   isSubmitting = false;
+  deletingRequestId: number | null = null;
   editRequestId: number | null = null;
 
   viewState$ = this.refreshTrigger$.pipe(
@@ -142,6 +144,7 @@ export class App {
   startEdit(request: ServiceRequest): void {
     this.editRequestId = request.id;
     this.createErrorMessage = '';
+    this.deleteErrorMessage = '';
 
     this.createForm = {
       title: request.title,
@@ -153,6 +156,36 @@ export class App {
 
   cancelEdit(): void {
     this.resetForm();
+  }
+
+  deleteRequest(request: ServiceRequest): void {
+    this.deleteErrorMessage = '';
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete service request "${request.title}"?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.deletingRequestId = request.id;
+
+    this.serviceRequestService.deleteServiceRequest(request.id).subscribe({
+      next: () => {
+        if (this.editRequestId === request.id) {
+          this.resetForm();
+        }
+
+        this.deletingRequestId = null;
+        this.refreshTrigger$.next();
+      },
+      error: (error) => {
+        console.error('Failed to delete service request', error);
+        this.deleteErrorMessage = 'Failed to delete service request.';
+        this.deletingRequestId = null;
+      },
+    });
   }
 
   resetForm(): void {

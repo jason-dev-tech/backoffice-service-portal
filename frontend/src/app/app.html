@@ -83,6 +83,10 @@
       </div>
     </section>
 
+    @if (deleteErrorMessage) {
+      <p class="error-message">{{ deleteErrorMessage }}</p>
+    }
+
     @if (viewState$ | async; as vm) {
       @if (vm.isLoading) {
         <p class="info-message">Loading service requests...</p>
@@ -116,9 +120,25 @@
                   <td>{{ request.createdAt }}</td>
                   <td>{{ request.updatedAt ?? '-' }}</td>
                   <td>
-                    <button type="button" class="secondary-button" (click)="startEdit(request)">
-                      Edit
-                    </button>
+                    <div class="action-buttons">
+                      <button
+                        type="button"
+                        class="secondary-button"
+                        (click)="startEdit(request)"
+                        [disabled]="deletingRequestId === request.id"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        class="danger-button"
+                        (click)="deleteRequest(request)"
+                        [disabled]="deletingRequestId === request.id"
+                      >
+                        {{ deletingRequestId === request.id ? 'Deleting...' : 'Delete' }}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               }

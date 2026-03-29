@@ -142,3 +142,17 @@ button:disabled {
 .secondary-button {
   background-color: #6b7280;
 }
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.danger-button {
+  background-color: #dc2626;
+}
+
+.danger-button:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
+}

@@ -5,6 +5,48 @@
       <p>Angular frontend connected to the ASP.NET Core Web API.</p>
     </header>
 
+    <section class="create-section">
+      <h2>Create Service Request</h2>
+
+      @if (createErrorMessage) {
+        <p class="error-message">{{ createErrorMessage }}</p>
+      }
+
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input
+          id="title"
+          type="text"
+          [value]="createForm.title"
+          (input)="createForm.title = $any($event.target).value"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          rows="4"
+          [value]="createForm.description"
+          (input)="createForm.description = $any($event.target).value"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="requesterName">Requester Name</label>
+        <input
+          id="requesterName"
+          type="text"
+          [value]="createForm.requesterName"
+          (input)="createForm.requesterName = $any($event.target).value"
+        />
+      </div>
+
+      <button type="button" (click)="submitCreateForm()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Submitting...' : 'Create Service Request' }}
+      </button>
+    </section>
+
     @if (viewState$ | async; as vm) {
       @if (vm.isLoading) {
         <p class="info-message">Loading service requests...</p>

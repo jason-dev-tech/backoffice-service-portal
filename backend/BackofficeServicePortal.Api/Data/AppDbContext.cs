@@ -47,5 +47,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Role>()
             .HasIndex(r => r.Name)
             .IsUnique();
+
+        modelBuilder.Entity<Role>()
+            .HasData(
+                new Role { Id = 1, Name = "Admin" },
+                new Role { Id = 2, Name = "Operator" },
+                new Role { Id = 3, Name = "Viewer" });
     }
 }

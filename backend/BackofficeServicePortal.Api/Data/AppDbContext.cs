@@ -26,13 +26,13 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<UserRole>()
             .HasOne(ur => ur.User)
-            .WithMany()
+            .WithMany(u => u.UserRoles)
             .HasForeignKey(ur => ur.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UserRole>()
             .HasOne(ur => ur.Role)
-            .WithMany()
+            .WithMany(r => r.UserRoles)
             .HasForeignKey(ur => ur.RoleId)
             .OnDelete(DeleteBehavior.Cascade);
 

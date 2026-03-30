@@ -1,10 +1,14 @@
-using BackofficeServicePortal.Api.Data;
-using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Text;
+using BackofficeServicePortal.Api.Configuration;
+using BackofficeServicePortal.Api.Data;
 using BackofficeServicePortal.Api.Models;
 using BackofficeServicePortal.Api.Services;
-using Microsoft.AspNetCore.Mvc;
 using BackofficeServicePortal.Api.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +37,32 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
+
+builder.Services.Configure<JwtOptions>(
+    builder.Configuration.GetSection("Jwt"));
+
+var jwtOptions = builder.Configuration
+    .GetSection("Jwt")
+    .Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration is missing.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtOptions.Key)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<ServiceRequestAuditLogService>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
@@ -83,6 +113,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("FrontendPolicy");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Map controller endpoints

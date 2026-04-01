@@ -68,6 +68,7 @@ builder.Services.AddSingleton<ServiceRequestAuditLogService>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

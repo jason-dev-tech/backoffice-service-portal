@@ -48,6 +48,8 @@ var jwtOptions = builder.Configuration
     .GetSection("Jwt")
     .Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration is missing.");
 
+jwtOptions.Key = builder.Configuration["Jwt:Key"] ?? jwtOptions.Key;
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

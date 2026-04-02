@@ -7,9 +7,8 @@ dual-database design:
 -   **PostgreSQL** for primary business data
 -   **MongoDB (Docker-based)** for audit logging
 
-> ⚠️ This repository is provided for **demonstration and portfolio
-> purposes only**. It is **not an open-source project**, and all rights
-> are reserved.
+> ⚠️ This repository is published for **public reference and evaluation**.
+> It is **not an open-source project**, and all rights are reserved.
 
 ------------------------------------------------------------------------
 
@@ -22,6 +21,9 @@ dual-database design:
     Angular)**
 -   DTO-based API design (no direct entity exposure)
 -   Service layer architecture (Controller → Service → Data)
+-   JWT authentication with role claims
+-   Role-based authorization enforced on protected service request
+    endpoints
 -   Centralized validation handling
 -   PostgreSQL (EF Core) for core data persistence
 -   MongoDB for audit logging (Created, Updated, Deleted)
@@ -39,6 +41,9 @@ dual-database design:
 -   **Primary Database**: PostgreSQL
 -   **Audit Logging**: MongoDB
 -   **API Contract**: DTO-based separation
+-   **Authentication**: JWT bearer tokens
+-   **Authorization**: Role-based access control (`Admin`,
+    `Operator`, `Viewer`)
 -   **Validation**: DataAnnotations + centralized error handling
 -   **CORS**: Configuration-driven (no hardcoding)
 
@@ -49,6 +54,7 @@ dual-database design:
 -   ASP.NET Core Web API (.NET 8)
 -   Angular (zoneless, AsyncPipe)
 -   Entity Framework Core
+-   ASP.NET Core Authentication / Authorization
 -   PostgreSQL
 -   MongoDB
 -   Docker
@@ -56,6 +62,10 @@ dual-database design:
 ------------------------------------------------------------------------
 
 ## 📡 API Endpoints
+
+### Authentication
+
+-   `POST /api/Auth/login`
 
 ### Service Requests
 
@@ -68,6 +78,9 @@ dual-database design:
 ### Audit Logs
 
 -   `GET /api/ServiceRequests/{id}/audit-logs`
+
+Service request read endpoints require authentication. Create and update
+operations require `Admin` or `Operator`, and delete requires `Admin`.
 
 ------------------------------------------------------------------------
 
@@ -215,8 +228,8 @@ Open:
 
 ## 📈 Future Improvements
 
--   Authentication & Authorization (JWT)
--   Role-based access control
+-   Frontend authentication workflow
+-   Expanded role-based access control coverage
 -   FluentValidation integration
 -   Unit & integration testing
 -   Cloud deployment (Azure / AWS)

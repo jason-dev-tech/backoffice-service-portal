@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackofficeServicePortal.Api.Controllers;
@@ -13,6 +14,7 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult<BackofficeServicePortal.Api.DTOs.Auth.LoginResponseDto>> Login(BackofficeServicePortal.Api.DTOs.Auth.LoginRequestDto request)
     {

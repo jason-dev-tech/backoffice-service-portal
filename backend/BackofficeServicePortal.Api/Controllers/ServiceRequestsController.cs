@@ -1,6 +1,7 @@
 using BackofficeServicePortal.Api.DTOs.ServiceRequests;
 using BackofficeServicePortal.Api.Models;
 using BackofficeServicePortal.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BackofficeServicePortal.Api.Services.Interfaces;
 
@@ -12,6 +13,7 @@ namespace BackofficeServicePortal.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class ServiceRequestsController : ControllerBase
 {
     private readonly IServiceRequestService _serviceRequestService;
@@ -62,6 +64,7 @@ public class ServiceRequestsController : ControllerBase
     /// </summary>
     /// <param name="dto">The service request payload to create.</param>
     /// <returns>The created service request.</returns>
+    [Authorize(Roles = $"{ApplicationRoles.Admin},{ApplicationRoles.Operator}")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -82,6 +85,7 @@ public class ServiceRequestsController : ControllerBase
     /// <param name="id">The ID of the service request to update.</param>
     /// <param name="dto">The updated service request payload.</param>
     /// <returns>The updated service request.</returns>
+    [Authorize(Roles = $"{ApplicationRoles.Admin},{ApplicationRoles.Operator}")]
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -105,6 +109,7 @@ public class ServiceRequestsController : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the service request to delete.</param>
     /// <returns>No content if the deletion is successful.</returns>
+    [Authorize(Roles = ApplicationRoles.Admin)]
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

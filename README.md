@@ -7,7 +7,6 @@ dual-database design:
 -   **PostgreSQL** for primary business data
 -   **MongoDB (Docker-based)** for audit logging
 
-> ⚠️ This repository is published for **public reference and evaluation**.
 > It is **not an open-source project**, and all rights are reserved.
 
 ------------------------------------------------------------------------

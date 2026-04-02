@@ -38,6 +38,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
+builder.Services.Configure<BootstrapAdminOptions>(
+    builder.Configuration.GetSection("BootstrapAdmin"));
+
 builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection("Jwt"));
 
@@ -121,5 +124,50 @@ app.UseAuthorization();
 
 // Map controller endpoints
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var passwordHasherService = scope.ServiceProvider.GetRequiredService<IPasswordHasherService>();
+    var bootstrapAdminOptions = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<BootstrapAdminOptions>>();
+
+    if (!await dbContext.Users.AnyAsync())
+    {
+        var options = bootstrapAdminOptions.Value;
+
+        if (!string.IsNullOrWhiteSpace(options.Username) &&
+            !string.IsNullOrWhiteSpace(options.Email) &&
+            !string.IsNullOrWhiteSpace(options.FullName) &&
+            !string.IsNullOrWhiteSpace(options.Password))
+        {
+            var adminRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+
+            if (adminRole is not null)
+            {
+                var user = new User
+                {
+                    Username = options.Username,
+                    Email = options.Email,
+                    FullName = options.FullName,
+                    IsActive = true,
+                    CreatedAtUtc = DateTime.UtcNow
+                };
+
+                user.PasswordHash = passwordHasherService.HashPassword(user, options.Password);
+
+                dbContext.Users.Add(user);
+                await dbContext.SaveChangesAsync();
+
+                dbContext.UserRoles.Add(new UserRole
+                {
+                    UserId = user.Id,
+                    RoleId = adminRole.Id
+                });
+
+                await dbContext.SaveChangesAsync();
+            }
+        }
+    }
+}
 
 app.Run();

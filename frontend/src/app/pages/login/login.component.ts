@@ -8,7 +8,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule],
-  template: '',
+  templateUrl: './login.component.html',
 })
 export class LoginComponent {
   private authService = inject(AuthService);

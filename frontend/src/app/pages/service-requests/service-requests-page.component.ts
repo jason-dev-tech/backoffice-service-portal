@@ -14,6 +14,9 @@ type ServiceRequestViewState = {
   isLoading: boolean;
   errorMessage: string;
   serviceRequests: ServiceRequest[];
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
 };
 
 @Component({
@@ -27,6 +30,7 @@ export class ServiceRequestsPageComponent {
   private router = inject(Router);
   private serviceRequestService = inject(ServiceRequestService);
   private refreshTrigger$ = new BehaviorSubject<void>(undefined);
+  private currentPage$ = new BehaviorSubject<number>(1);
   private searchTerm$ = new BehaviorSubject<string>('');
   private selectedStatus$ = new BehaviorSubject<string>('');
 
@@ -40,14 +44,25 @@ export class ServiceRequestsPageComponent {
   successMessage = '';
   createErrorMessage = '';
   deleteErrorMessage = '';
+  pageSize = 5;
   isSubmitting = false;
   deletingRequestId: number | null = null;
   editRequestId: number | null = null;
+
+  get currentPage(): number {
+    return this.currentPage$.value;
+  }
+
+  set currentPage(value: number) {
+    this.currentPage$.next(value);
+  }
+
   get searchTerm(): string {
     return this.searchTerm$.value;
   }
 
   set searchTerm(value: string) {
+    this.currentPage = 1;
     this.searchTerm$.next(value);
   }
 
@@ -56,6 +71,7 @@ export class ServiceRequestsPageComponent {
   }
 
   set selectedStatus(value: string) {
+    this.currentPage = 1;
     this.selectedStatus$.next(value);
   }
 
@@ -68,12 +84,18 @@ export class ServiceRequestsPageComponent {
               isLoading: false,
               errorMessage: '',
               serviceRequests: data,
+              currentPage: this.currentPage,
+              pageSize: this.pageSize,
+              totalPages: 0,
             }),
           ),
           startWith({
             isLoading: true,
             errorMessage: '',
             serviceRequests: [],
+            currentPage: this.currentPage,
+            pageSize: this.pageSize,
+            totalPages: 0,
           }),
           catchError((error) => {
             console.error('Failed to load service requests', error);
@@ -82,22 +104,30 @@ export class ServiceRequestsPageComponent {
               isLoading: false,
               errorMessage: 'Failed to load service requests.',
               serviceRequests: [],
+              currentPage: this.currentPage,
+              pageSize: this.pageSize,
+              totalPages: 0,
             });
           }),
         ),
       ),
     ),
+    this.currentPage$,
     this.searchTerm$,
     this.selectedStatus$,
   ]).pipe(
-    map(([viewState, searchTerm, selectedStatus]) => ({
-      ...viewState,
-      serviceRequests: this.filterServiceRequests(
+    map(([viewState, currentPage, searchTerm, selectedStatus]) => {
+      const filteredServiceRequests = this.filterServiceRequests(
         viewState.serviceRequests,
         searchTerm,
         selectedStatus,
-      ),
-    })),
+      );
+
+      return {
+        ...viewState,
+        ...this.paginateServiceRequests(filteredServiceRequests, currentPage),
+      };
+    }),
   );
 
   get isEditMode(): boolean {
@@ -264,5 +294,26 @@ export class ServiceRequestsPageComponent {
         )) &&
       (!normalizedSelectedStatus || request.status.toLowerCase() === normalizedSelectedStatus),
     );
+  }
+
+  private paginateServiceRequests(
+    serviceRequests: ServiceRequest[],
+    currentPage: number,
+  ): Pick<
+    ServiceRequestViewState,
+    'serviceRequests' | 'currentPage' | 'pageSize' | 'totalPages'
+  > {
+    const totalPages =
+      serviceRequests.length === 0 ? 0 : Math.ceil(serviceRequests.length / this.pageSize);
+    const normalizedCurrentPage = totalPages === 0 ? 1 : Math.min(currentPage, totalPages);
+    const startIndex = (normalizedCurrentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+
+    return {
+      serviceRequests: serviceRequests.slice(startIndex, endIndex),
+      currentPage: normalizedCurrentPage,
+      pageSize: this.pageSize,
+      totalPages,
+    };
   }
 }

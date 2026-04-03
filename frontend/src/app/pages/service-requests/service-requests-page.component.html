@@ -181,6 +181,28 @@
             </tbody>
           </table>
         </div>
+
+        @if (vm.totalPages > 1) {
+          <div class="button-group">
+            <p class="info-message">Page {{ vm.currentPage }} of {{ vm.totalPages }}</p>
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="currentPage = currentPage - 1"
+              [disabled]="vm.currentPage === 1"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="currentPage = currentPage + 1"
+              [disabled]="vm.currentPage === vm.totalPages"
+            >
+              Next
+            </button>
+          </div>
+        }
       }
     }
   </div>

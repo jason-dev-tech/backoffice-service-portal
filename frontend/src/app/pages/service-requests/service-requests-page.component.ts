@@ -18,7 +18,7 @@ type ServiceRequestViewState = {
   selector: 'app-service-requests-page',
   standalone: true,
   imports: [CommonModule],
-  template: '',
+  templateUrl: './service-requests-page.component.html',
 })
 export class ServiceRequestsPageComponent {
   private serviceRequestService = inject(ServiceRequestService);

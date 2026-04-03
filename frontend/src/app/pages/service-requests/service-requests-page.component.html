@@ -8,45 +8,51 @@
       </div>
     </header>
 
-    <div class="form-group">
-      <label for="searchTerm">Search Service Requests</label>
-      <input
-        id="searchTerm"
-        type="text"
-        placeholder="Search by title, description, or status"
-        [value]="searchTerm"
-        (input)="searchTerm = $any($event.target).value"
-      />
-    </div>
+    <div class="controls-container">
+      <div class="form-group">
+        <label for="searchTerm">Search Service Requests</label>
+        <input
+          id="searchTerm"
+          type="text"
+          placeholder="Search by title, description, or status"
+          [value]="searchTerm"
+          (input)="searchTerm = $any($event.target).value"
+        />
+      </div>
 
-    <div class="form-group">
-      <label for="selectedStatus">Filter by Status</label>
-      <select
-        id="selectedStatus"
-        [value]="selectedStatus"
-        (change)="selectedStatus = $any($event.target).value"
-      >
-        <option value="">All</option>
-        <option value="Open">Open</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Closed">Closed</option>
-      </select>
-    </div>
+      <div class="form-group">
+        <label for="selectedStatus">Filter by Status</label>
+        <select
+          id="selectedStatus"
+          [value]="selectedStatus"
+          (change)="selectedStatus = $any($event.target).value"
+        >
+          <option value="">All</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
 
-    <div class="form-group">
-      <label for="sortOption">Sort By</label>
-      <select id="sortOption" [value]="sortOption" (change)="sortOption = $any($event.target).value">
-        <option value="created-desc">Newest first</option>
-        <option value="created-asc">Oldest first</option>
-        <option value="title-asc">Title A-Z</option>
-        <option value="title-desc">Title Z-A</option>
-        <option value="status-asc">Status A-Z</option>
-        <option value="status-desc">Status Z-A</option>
-      </select>
-    </div>
+      <div class="form-group">
+        <label for="sortOption">Sort By</label>
+        <select
+          id="sortOption"
+          [value]="sortOption"
+          (change)="sortOption = $any($event.target).value"
+        >
+          <option value="created-desc">Newest first</option>
+          <option value="created-asc">Oldest first</option>
+          <option value="title-asc">Title A-Z</option>
+          <option value="title-desc">Title Z-A</option>
+          <option value="status-asc">Status A-Z</option>
+          <option value="status-desc">Status Z-A</option>
+        </select>
+      </div>
 
-    <div class="button-group">
-      <button type="button" class="secondary-button" (click)="resetFilters()">Reset</button>
+      <div class="button-group controls-actions">
+        <button type="button" class="secondary-button" (click)="resetFilters()">Reset</button>
+      </div>
     </div>
 
     @if (successMessage) {

@@ -34,6 +34,7 @@ type ServiceRequestViewState = {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './service-requests-page.component.html',
+  styleUrls: ['./service-requests-page.component.css'],
 })
 export class ServiceRequestsPageComponent {
   private authService = inject(AuthService);

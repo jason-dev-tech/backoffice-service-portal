@@ -15,4 +15,6 @@ public class CreateServiceRequestDto
     [Required]
     [StringLength(100)]
     public string RequesterName { get; set; } = string.Empty;
+
+    public string? Status { get; set; }
 }

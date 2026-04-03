@@ -80,6 +80,23 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
+    /// Creates multiple service requests.
+    /// </summary>
+    /// <param name="dtos">The service request payloads to create.</param>
+    /// <returns>The created service requests.</returns>
+    [Authorize(Roles = $"{ApplicationRoles.Admin},{ApplicationRoles.Operator}")]
+    [HttpPost("batch")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IEnumerable<ServiceRequestResponseDto>>> CreateServiceRequestsBatch(
+        [FromBody] IEnumerable<CreateServiceRequestDto> dtos)
+    {
+        var response = await _serviceRequestService.CreateBatchAsync(dtos);
+
+        return StatusCode(StatusCodes.Status201Created, response);
+    }
+
+    /// <summary>
     /// Updates an existing service request.
     /// </summary>
     /// <param name="id">The ID of the service request to update.</param>

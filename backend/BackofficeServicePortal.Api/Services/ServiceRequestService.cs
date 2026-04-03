@@ -42,7 +42,7 @@ public class ServiceRequestService : IServiceRequestService
             Title = dto.Title,
             Description = dto.Description,
             RequesterName = dto.RequesterName,
-            Status = "Open",
+            Status = string.IsNullOrWhiteSpace(dto.Status) ? "Open" : dto.Status,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
@@ -59,6 +59,24 @@ public class ServiceRequestService : IServiceRequestService
         });
 
         return serviceRequest.ToResponseDto();
+    }
+
+    public async Task<IEnumerable<ServiceRequestResponseDto>> CreateBatchAsync(IEnumerable<CreateServiceRequestDto> dtos)
+    {
+        var serviceRequests = dtos.Select(dto => new ServiceRequest
+        {
+            Title = dto.Title,
+            Description = dto.Description,
+            RequesterName = dto.RequesterName,
+            Status = string.IsNullOrWhiteSpace(dto.Status) ? "Open" : dto.Status,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = null
+        }).ToList();
+
+        await _dbContext.ServiceRequests.AddRangeAsync(serviceRequests);
+        await _dbContext.SaveChangesAsync();
+
+        return serviceRequests.Select(sr => sr.ToResponseDto());
     }
 
     public async Task<ServiceRequestResponseDto?> UpdateAsync(int id, UpdateServiceRequestDto dto)

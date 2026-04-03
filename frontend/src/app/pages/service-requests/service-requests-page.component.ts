@@ -17,6 +17,8 @@ type ServiceRequestViewState = {
   currentPage: number;
   pageSize: number;
   totalPages: number;
+  totalFilteredCount: number;
+  visibleCount: number;
 };
 
 @Component({
@@ -87,6 +89,8 @@ export class ServiceRequestsPageComponent {
               currentPage: this.currentPage,
               pageSize: this.pageSize,
               totalPages: 0,
+              totalFilteredCount: 0,
+              visibleCount: 0,
             }),
           ),
           startWith({
@@ -96,6 +100,8 @@ export class ServiceRequestsPageComponent {
             currentPage: this.currentPage,
             pageSize: this.pageSize,
             totalPages: 0,
+            totalFilteredCount: 0,
+            visibleCount: 0,
           }),
           catchError((error) => {
             console.error('Failed to load service requests', error);
@@ -107,6 +113,8 @@ export class ServiceRequestsPageComponent {
               currentPage: this.currentPage,
               pageSize: this.pageSize,
               totalPages: 0,
+              totalFilteredCount: 0,
+              visibleCount: 0,
             });
           }),
         ),
@@ -301,19 +309,22 @@ export class ServiceRequestsPageComponent {
     currentPage: number,
   ): Pick<
     ServiceRequestViewState,
-    'serviceRequests' | 'currentPage' | 'pageSize' | 'totalPages'
+    'serviceRequests' | 'currentPage' | 'pageSize' | 'totalPages' | 'totalFilteredCount' | 'visibleCount'
   > {
     const totalPages =
       serviceRequests.length === 0 ? 0 : Math.ceil(serviceRequests.length / this.pageSize);
     const normalizedCurrentPage = totalPages === 0 ? 1 : Math.min(currentPage, totalPages);
     const startIndex = (normalizedCurrentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
+    const visibleServiceRequests = serviceRequests.slice(startIndex, endIndex);
 
     return {
-      serviceRequests: serviceRequests.slice(startIndex, endIndex),
+      serviceRequests: visibleServiceRequests,
       currentPage: normalizedCurrentPage,
       pageSize: this.pageSize,
       totalPages,
+      totalFilteredCount: serviceRequests.length,
+      visibleCount: visibleServiceRequests.length,
     };
   }
 }

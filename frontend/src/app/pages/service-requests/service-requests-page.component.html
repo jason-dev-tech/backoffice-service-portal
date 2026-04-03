@@ -131,6 +131,10 @@
           <p class="info-message">No service requests yet. Create one to get started.</p>
         }
       } @else {
+        <p class="info-message">
+          Showing {{ vm.visibleCount }} of {{ vm.totalFilteredCount }} service requests
+        </p>
+
         <div class="table-wrapper">
           <table>
             <thead>

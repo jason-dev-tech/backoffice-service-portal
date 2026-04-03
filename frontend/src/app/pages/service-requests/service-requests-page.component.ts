@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 import {
   CreateServiceRequestRequest,
   ServiceRequestService,
@@ -21,6 +23,8 @@ type ServiceRequestViewState = {
   templateUrl: './service-requests-page.component.html',
 })
 export class ServiceRequestsPageComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
   private serviceRequestService = inject(ServiceRequestService);
   private refreshTrigger$ = new BehaviorSubject<void>(undefined);
 
@@ -197,5 +201,10 @@ export class ServiceRequestsPageComponent {
       requesterName: '',
       status: 'Open',
     };
+  }
+
+  onLogout(): void {
+    this.authService.logout();
+    void this.router.navigate(['/login']);
   }
 }

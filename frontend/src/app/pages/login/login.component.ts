@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule],
   templateUrl: './login.component.html',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -18,6 +18,12 @@ export class LoginComponent {
   password = '';
   errorMessage = '';
   isSubmitting = false;
+
+  ngOnInit(): void {
+    if (this.authService.isAuthenticated()) {
+      void this.router.navigate(['/service-requests']);
+    }
+  }
 
   async login(): Promise<void> {
     this.errorMessage = '';

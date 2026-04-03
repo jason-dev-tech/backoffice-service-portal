@@ -37,6 +37,7 @@ export class ServiceRequestsPageComponent {
     status: 'Open',
   };
 
+  successMessage = '';
   createErrorMessage = '';
   deleteErrorMessage = '';
   isSubmitting = false;
@@ -104,7 +105,9 @@ export class ServiceRequestsPageComponent {
   }
 
   submitForm(): void {
+    this.successMessage = '';
     this.createErrorMessage = '';
+    this.deleteErrorMessage = '';
 
     if (this.isEditMode) {
       this.submitEditForm();
@@ -126,11 +129,13 @@ export class ServiceRequestsPageComponent {
       return;
     }
 
+    this.successMessage = '';
     this.isSubmitting = true;
 
     this.serviceRequestService.createServiceRequest(payload).subscribe({
       next: () => {
         this.resetForm();
+        this.successMessage = 'Service request created successfully.';
         this.isSubmitting = false;
         this.refreshTrigger$.next();
       },
@@ -159,11 +164,13 @@ export class ServiceRequestsPageComponent {
       return;
     }
 
+    this.successMessage = '';
     this.isSubmitting = true;
 
     this.serviceRequestService.updateServiceRequest(this.editRequestId, payload).subscribe({
       next: () => {
         this.resetForm();
+        this.successMessage = 'Service request updated successfully.';
         this.isSubmitting = false;
         this.refreshTrigger$.next();
       },
@@ -176,6 +183,7 @@ export class ServiceRequestsPageComponent {
   }
 
   startEdit(request: ServiceRequest): void {
+    this.successMessage = '';
     this.editRequestId = request.id;
     this.createErrorMessage = '';
     this.deleteErrorMessage = '';
@@ -193,6 +201,8 @@ export class ServiceRequestsPageComponent {
   }
 
   deleteRequest(request: ServiceRequest): void {
+    this.successMessage = '';
+    this.createErrorMessage = '';
     this.deleteErrorMessage = '';
 
     const confirmed = window.confirm(
@@ -211,6 +221,7 @@ export class ServiceRequestsPageComponent {
           this.resetForm();
         }
 
+        this.successMessage = 'Service request deleted successfully.';
         this.deletingRequestId = null;
         this.refreshTrigger$.next();
       },

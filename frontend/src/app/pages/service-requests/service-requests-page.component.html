@@ -33,6 +33,18 @@
       </select>
     </div>
 
+    <div class="form-group">
+      <label for="sortOption">Sort By</label>
+      <select id="sortOption" [value]="sortOption" (change)="sortOption = $any($event.target).value">
+        <option value="created-desc">Newest first</option>
+        <option value="created-asc">Oldest first</option>
+        <option value="title-asc">Title A-Z</option>
+        <option value="title-desc">Title Z-A</option>
+        <option value="status-asc">Status A-Z</option>
+        <option value="status-desc">Status Z-A</option>
+      </select>
+    </div>
+
     @if (successMessage) {
       <p class="info-message">{{ successMessage }}</p>
     }

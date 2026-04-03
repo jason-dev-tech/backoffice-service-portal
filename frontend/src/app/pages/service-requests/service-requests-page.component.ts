@@ -10,6 +10,14 @@ import {
 } from '../../services/service-request.service';
 import { ServiceRequest } from '../../models/service-request.model';
 
+type ServiceRequestSortOption =
+  | 'created-desc'
+  | 'created-asc'
+  | 'title-asc'
+  | 'title-desc'
+  | 'status-asc'
+  | 'status-desc';
+
 type ServiceRequestViewState = {
   isLoading: boolean;
   errorMessage: string;
@@ -35,6 +43,7 @@ export class ServiceRequestsPageComponent {
   private currentPage$ = new BehaviorSubject<number>(1);
   private searchTerm$ = new BehaviorSubject<string>('');
   private selectedStatus$ = new BehaviorSubject<string>('');
+  private sortOption$ = new BehaviorSubject<ServiceRequestSortOption>('created-desc');
 
   createForm = {
     title: '',
@@ -75,6 +84,15 @@ export class ServiceRequestsPageComponent {
   set selectedStatus(value: string) {
     this.currentPage = 1;
     this.selectedStatus$.next(value);
+  }
+
+  get sortOption(): ServiceRequestSortOption {
+    return this.sortOption$.value;
+  }
+
+  set sortOption(value: ServiceRequestSortOption) {
+    this.currentPage = 1;
+    this.sortOption$.next(value);
   }
 
   viewState$ = combineLatest([
@@ -123,17 +141,19 @@ export class ServiceRequestsPageComponent {
     this.currentPage$,
     this.searchTerm$,
     this.selectedStatus$,
+    this.sortOption$,
   ]).pipe(
-    map(([viewState, currentPage, searchTerm, selectedStatus]) => {
+    map(([viewState, currentPage, searchTerm, selectedStatus, sortOption]) => {
       const filteredServiceRequests = this.filterServiceRequests(
         viewState.serviceRequests,
         searchTerm,
         selectedStatus,
       );
+      const sortedServiceRequests = this.sortServiceRequests(filteredServiceRequests, sortOption);
 
       return {
         ...viewState,
-        ...this.paginateServiceRequests(filteredServiceRequests, currentPage),
+        ...this.paginateServiceRequests(sortedServiceRequests, currentPage),
       };
     }),
   );
@@ -326,5 +346,31 @@ export class ServiceRequestsPageComponent {
       totalFilteredCount: serviceRequests.length,
       visibleCount: visibleServiceRequests.length,
     };
+  }
+
+  private sortServiceRequests(
+    serviceRequests: ServiceRequest[],
+    sortOption: ServiceRequestSortOption,
+  ): ServiceRequest[] {
+    const sortedServiceRequests = [...serviceRequests];
+
+    sortedServiceRequests.sort((left, right) => {
+      switch (sortOption) {
+        case 'created-asc':
+          return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+        case 'created-desc':
+          return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+        case 'title-asc':
+          return left.title.localeCompare(right.title);
+        case 'title-desc':
+          return right.title.localeCompare(left.title);
+        case 'status-asc':
+          return left.status.localeCompare(right.status);
+        case 'status-desc':
+          return right.status.localeCompare(left.status);
+      }
+    });
+
+    return sortedServiceRequests;
   }
 }

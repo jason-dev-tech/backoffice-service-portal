@@ -34,7 +34,7 @@ export class LoginComponent {
 
     try {
       await firstValueFrom(this.authService.login(username, password));
-      await this.router.navigate(['/']);
+      await this.router.navigate(['/service-requests']);
     } catch {
       this.errorMessage = 'Login failed.';
     } finally {

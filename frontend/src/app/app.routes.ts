@@ -4,5 +4,6 @@ import { ServiceRequestsPageComponent } from './pages/service-requests/service-r
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: '', component: ServiceRequestsPageComponent },
+  { path: 'service-requests', component: ServiceRequestsPageComponent },
+  { path: '', redirectTo: 'service-requests', pathMatch: 'full' },
 ];

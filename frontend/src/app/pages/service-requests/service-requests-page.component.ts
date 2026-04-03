@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import {
   CreateServiceRequestRequest,
@@ -27,6 +27,7 @@ export class ServiceRequestsPageComponent {
   private router = inject(Router);
   private serviceRequestService = inject(ServiceRequestService);
   private refreshTrigger$ = new BehaviorSubject<void>(undefined);
+  private searchTerm$ = new BehaviorSubject<string>('');
 
   createForm = {
     title: '',
@@ -40,33 +41,48 @@ export class ServiceRequestsPageComponent {
   isSubmitting = false;
   deletingRequestId: number | null = null;
   editRequestId: number | null = null;
+  get searchTerm(): string {
+    return this.searchTerm$.value;
+  }
 
-  viewState$ = this.refreshTrigger$.pipe(
-    switchMap(() =>
-      this.serviceRequestService.getServiceRequests().pipe(
-        map(
-          (data): ServiceRequestViewState => ({
-            isLoading: false,
+  set searchTerm(value: string) {
+    this.searchTerm$.next(value);
+  }
+
+  viewState$ = combineLatest([
+    this.refreshTrigger$.pipe(
+      switchMap(() =>
+        this.serviceRequestService.getServiceRequests().pipe(
+          map(
+            (data): ServiceRequestViewState => ({
+              isLoading: false,
+              errorMessage: '',
+              serviceRequests: data,
+            }),
+          ),
+          startWith({
+            isLoading: true,
             errorMessage: '',
-            serviceRequests: data,
+            serviceRequests: [],
+          }),
+          catchError((error) => {
+            console.error('Failed to load service requests', error);
+
+            return of({
+              isLoading: false,
+              errorMessage: 'Failed to load service requests.',
+              serviceRequests: [],
+            });
           }),
         ),
-        startWith({
-          isLoading: true,
-          errorMessage: '',
-          serviceRequests: [],
-        }),
-        catchError((error) => {
-          console.error('Failed to load service requests', error);
-
-          return of({
-            isLoading: false,
-            errorMessage: 'Failed to load service requests.',
-            serviceRequests: [],
-          });
-        }),
       ),
     ),
+    this.searchTerm$,
+  ]).pipe(
+    map(([viewState, searchTerm]) => ({
+      ...viewState,
+      serviceRequests: this.filterServiceRequests(viewState.serviceRequests, searchTerm),
+    })),
   );
 
   get isEditMode(): boolean {
@@ -206,5 +222,22 @@ export class ServiceRequestsPageComponent {
   onLogout(): void {
     this.authService.logout();
     void this.router.navigate(['/login']);
+  }
+
+  private filterServiceRequests(
+    serviceRequests: ServiceRequest[],
+    searchTerm: string,
+  ): ServiceRequest[] {
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
+    if (!normalizedSearchTerm) {
+      return serviceRequests;
+    }
+
+    return serviceRequests.filter((request) =>
+      [request.title, request.description, request.status].some((value) =>
+        value.toLowerCase().includes(normalizedSearchTerm),
+      ),
+    );
   }
 }

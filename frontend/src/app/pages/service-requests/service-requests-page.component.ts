@@ -307,6 +307,13 @@ export class ServiceRequestsPageComponent {
     void this.router.navigate(['/login']);
   }
 
+  resetFilters(): void {
+    this.currentPage = 1;
+    this.searchTerm = '';
+    this.selectedStatus = '';
+    this.sortOption = 'created-desc';
+  }
+
   private filterServiceRequests(
     serviceRequests: ServiceRequest[],
     searchTerm: string,

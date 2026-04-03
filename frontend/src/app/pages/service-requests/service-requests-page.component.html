@@ -45,6 +45,10 @@
       </select>
     </div>
 
+    <div class="button-group">
+      <button type="button" class="secondary-button" (click)="resetFilters()">Reset</button>
+    </div>
+
     @if (successMessage) {
       <p class="info-message">{{ successMessage }}</p>
     }

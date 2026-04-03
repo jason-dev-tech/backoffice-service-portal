@@ -121,7 +121,11 @@
       } @else if (vm.errorMessage) {
         <p class="error-message">{{ vm.errorMessage }}</p>
       } @else if (vm.serviceRequests.length === 0) {
-        <p class="info-message">No service requests found.</p>
+        @if (searchTerm.trim() || selectedStatus) {
+          <p class="info-message">No service requests match your current search or filters.</p>
+        } @else {
+          <p class="info-message">No service requests yet. Create one to get started.</p>
+        }
       } @else {
         <div class="table-wrapper">
           <table>

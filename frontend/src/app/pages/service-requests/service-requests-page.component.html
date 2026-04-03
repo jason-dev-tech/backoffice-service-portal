@@ -19,6 +19,20 @@
       />
     </div>
 
+    <div class="form-group">
+      <label for="selectedStatus">Filter by Status</label>
+      <select
+        id="selectedStatus"
+        [value]="selectedStatus"
+        (change)="selectedStatus = $any($event.target).value"
+      >
+        <option value="">All</option>
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Closed">Closed</option>
+      </select>
+    </div>
+
     <section class="create-section">
       <h2>{{ isEditMode ? 'Edit Service Request' : 'Create Service Request' }}</h2>
 

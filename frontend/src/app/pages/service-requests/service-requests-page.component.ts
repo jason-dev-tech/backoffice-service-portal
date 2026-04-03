@@ -28,6 +28,7 @@ export class ServiceRequestsPageComponent {
   private serviceRequestService = inject(ServiceRequestService);
   private refreshTrigger$ = new BehaviorSubject<void>(undefined);
   private searchTerm$ = new BehaviorSubject<string>('');
+  private selectedStatus$ = new BehaviorSubject<string>('');
 
   createForm = {
     title: '',
@@ -47,6 +48,14 @@ export class ServiceRequestsPageComponent {
 
   set searchTerm(value: string) {
     this.searchTerm$.next(value);
+  }
+
+  get selectedStatus(): string {
+    return this.selectedStatus$.value;
+  }
+
+  set selectedStatus(value: string) {
+    this.selectedStatus$.next(value);
   }
 
   viewState$ = combineLatest([
@@ -78,10 +87,15 @@ export class ServiceRequestsPageComponent {
       ),
     ),
     this.searchTerm$,
+    this.selectedStatus$,
   ]).pipe(
-    map(([viewState, searchTerm]) => ({
+    map(([viewState, searchTerm, selectedStatus]) => ({
       ...viewState,
-      serviceRequests: this.filterServiceRequests(viewState.serviceRequests, searchTerm),
+      serviceRequests: this.filterServiceRequests(
+        viewState.serviceRequests,
+        searchTerm,
+        selectedStatus,
+      ),
     })),
   );
 
@@ -227,17 +241,17 @@ export class ServiceRequestsPageComponent {
   private filterServiceRequests(
     serviceRequests: ServiceRequest[],
     searchTerm: string,
+    selectedStatus: string,
   ): ServiceRequest[] {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-
-    if (!normalizedSearchTerm) {
-      return serviceRequests;
-    }
+    const normalizedSelectedStatus = selectedStatus.trim().toLowerCase();
 
     return serviceRequests.filter((request) =>
-      [request.title, request.description, request.status].some((value) =>
-        value.toLowerCase().includes(normalizedSearchTerm),
-      ),
+      (!normalizedSearchTerm ||
+        [request.title, request.description, request.status].some((value) =>
+          value.toLowerCase().includes(normalizedSearchTerm),
+        )) &&
+      (!normalizedSelectedStatus || request.status.toLowerCase() === normalizedSelectedStatus),
     );
   }
 }

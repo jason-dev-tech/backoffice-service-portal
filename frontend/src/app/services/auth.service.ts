@@ -17,10 +17,11 @@ type LoginResponse = {
   providedIn: 'root',
 })
 export class AuthService {
+  private static readonly TOKEN_STORAGE_KEY = 'auth.accessToken';
+  private static readonly EXPIRES_AT_STORAGE_KEY = 'auth.expiresAtUtc';
+
   private http = inject(HttpClient);
   private loginUrl = `${environment.apiBaseUrl}/api/Auth/login`;
-  private accessTokenStorageKey = 'auth.accessToken';
-  private expiresAtStorageKey = 'auth.expiresAtUtc';
 
   login(username: string, password: string): Observable<LoginResponse> {
     const payload: LoginRequest = {
@@ -30,15 +31,14 @@ export class AuthService {
 
     return this.http.post<LoginResponse>(this.loginUrl, payload).pipe(
       tap((response) => {
-        localStorage.setItem(this.accessTokenStorageKey, response.accessToken);
-        localStorage.setItem(this.expiresAtStorageKey, response.expiresAtUtc);
+        this.setToken(response.accessToken);
+        localStorage.setItem(AuthService.EXPIRES_AT_STORAGE_KEY, response.expiresAtUtc);
       }),
     );
   }
 
-  logout(): void {
-    localStorage.removeItem(this.accessTokenStorageKey);
-    localStorage.removeItem(this.expiresAtStorageKey);
+  setToken(token: string): void {
+    localStorage.setItem(AuthService.TOKEN_STORAGE_KEY, token);
   }
 
   getToken(): string | null {
@@ -46,11 +46,15 @@ export class AuthService {
       return null;
     }
 
-    return localStorage.getItem(this.accessTokenStorageKey);
+    return localStorage.getItem(AuthService.TOKEN_STORAGE_KEY);
+  }
+
+  removeToken(): void {
+    localStorage.removeItem(AuthService.TOKEN_STORAGE_KEY);
   }
 
   getTokenExpiry(): Date | null {
-    const expiresAtUtc = localStorage.getItem(this.expiresAtStorageKey);
+    const expiresAtUtc = localStorage.getItem(AuthService.EXPIRES_AT_STORAGE_KEY);
 
     if (!expiresAtUtc) {
       return null;
@@ -66,7 +70,7 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    const token = localStorage.getItem(this.accessTokenStorageKey);
+    const token = localStorage.getItem(AuthService.TOKEN_STORAGE_KEY);
     const expiry = this.getTokenExpiry();
 
     if (!token || !expiry) {
@@ -79,5 +83,10 @@ export class AuthService {
     }
 
     return true;
+  }
+
+  logout(): void {
+    this.removeToken();
+    localStorage.removeItem(AuthService.EXPIRES_AT_STORAGE_KEY);
   }
 }

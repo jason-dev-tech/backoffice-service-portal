@@ -268,35 +268,35 @@
         </button>
       </div>
 
-      <div class="drawer-body">
-        <div class="form-grid">
-          <div class="field-group">
-            <label for="title">Title</label>
+      <div class="drawer-body drawer-form">
+        <div class="form-grid drawer-form-grid">
+          <div class="field-group drawer-form-field">
+            <label class="drawer-form-label" for="title">Title</label>
             <input
               id="title"
-              class="control-input"
+              class="control-input drawer-form-control"
               type="text"
               [value]="createForm.title"
               (input)="createForm.title = $any($event.target).value"
             />
           </div>
 
-          <div class="field-group">
-            <label for="requesterName">Requester name</label>
+          <div class="field-group drawer-form-field">
+            <label class="drawer-form-label" for="requesterName">Requester name</label>
             <input
               id="requesterName"
-              class="control-input"
+              class="control-input drawer-form-control"
               type="text"
               [value]="createForm.requesterName"
               (input)="createForm.requesterName = $any($event.target).value"
             />
           </div>
 
-          <div class="field-group field-group-full">
-            <label for="description">Description</label>
+          <div class="field-group field-group-full drawer-form-field drawer-form-field-full">
+            <label class="drawer-form-label" for="description">Description</label>
             <textarea
               id="description"
-              class="control-input control-textarea"
+              class="control-input control-textarea drawer-form-control drawer-form-control-textarea"
               rows="5"
               [value]="createForm.description"
               (input)="createForm.description = $any($event.target).value"
@@ -304,11 +304,11 @@
           </div>
 
           @if (isEditMode) {
-            <div class="field-group field-group-status">
-              <label for="status">Status</label>
+            <div class="field-group field-group-status drawer-form-field drawer-form-field-status">
+              <label class="drawer-form-label" for="status">Status</label>
               <select
                 id="status"
-                class="control-input"
+                class="control-input drawer-form-control"
                 [value]="createForm.status"
                 (change)="createForm.status = $any($event.target).value"
               >

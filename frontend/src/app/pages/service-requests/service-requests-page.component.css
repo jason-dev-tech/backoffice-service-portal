@@ -656,6 +656,40 @@ select.control-input {
   padding: 24px;
 }
 
+.drawer-form {
+  gap: 0;
+}
+
+.drawer-form-grid {
+  gap: 14px;
+  align-content: start;
+}
+
+.drawer-form-field {
+  gap: 6px;
+}
+
+.drawer-form-field-full,
+.drawer-form-field-status {
+  max-width: none;
+}
+
+.drawer-form-label {
+  display: inline-block;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.drawer-form-control {
+  min-height: 44px;
+}
+
+.drawer-form-control-textarea {
+  min-height: 132px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
 .form-actions {
   align-items: center;
   justify-content: flex-start;

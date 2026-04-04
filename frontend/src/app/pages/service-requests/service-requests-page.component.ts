@@ -58,6 +58,7 @@ export class ServiceRequestsPageComponent {
   deleteErrorMessage = '';
   pageSize = 5;
   isSubmitting = false;
+  isDrawerOpen = false;
   deletingRequestId: number | null = null;
   editRequestId: number | null = null;
 
@@ -163,6 +164,26 @@ export class ServiceRequestsPageComponent {
     return this.editRequestId !== null;
   }
 
+  openCreateDrawer(): void {
+    this.successMessage = '';
+    this.createErrorMessage = '';
+    this.deleteErrorMessage = '';
+    this.resetFormState();
+    this.isDrawerOpen = true;
+  }
+
+  closeDrawer(): void {
+    this.resetForm();
+  }
+
+  onDrawerBackdropClick(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.closeDrawer();
+  }
+
   submitForm(): void {
     this.successMessage = '';
     this.createErrorMessage = '';
@@ -193,10 +214,10 @@ export class ServiceRequestsPageComponent {
 
     this.serviceRequestService.createServiceRequest(payload).subscribe({
       next: () => {
-        this.resetForm();
         this.successMessage = 'Service request created successfully.';
         this.isSubmitting = false;
         this.refreshTrigger$.next();
+        this.closeDrawer();
       },
       error: (error) => {
         console.error('Failed to create service request', error);
@@ -228,10 +249,10 @@ export class ServiceRequestsPageComponent {
 
     this.serviceRequestService.updateServiceRequest(this.editRequestId, payload).subscribe({
       next: () => {
-        this.resetForm();
         this.successMessage = 'Service request updated successfully.';
         this.isSubmitting = false;
         this.refreshTrigger$.next();
+        this.closeDrawer();
       },
       error: (error) => {
         console.error('Failed to update service request', error);
@@ -243,9 +264,10 @@ export class ServiceRequestsPageComponent {
 
   startEdit(request: ServiceRequest): void {
     this.successMessage = '';
-    this.editRequestId = request.id;
     this.createErrorMessage = '';
     this.deleteErrorMessage = '';
+    this.editRequestId = request.id;
+    this.isDrawerOpen = true;
 
     this.createForm = {
       title: request.title,
@@ -256,7 +278,7 @@ export class ServiceRequestsPageComponent {
   }
 
   cancelEdit(): void {
-    this.resetForm();
+    this.closeDrawer();
   }
 
   deleteRequest(request: ServiceRequest): void {
@@ -277,7 +299,7 @@ export class ServiceRequestsPageComponent {
     this.serviceRequestService.deleteServiceRequest(request.id).subscribe({
       next: () => {
         if (this.editRequestId === request.id) {
-          this.resetForm();
+          this.closeDrawer();
         }
 
         this.successMessage = 'Service request deleted successfully.';
@@ -293,14 +315,9 @@ export class ServiceRequestsPageComponent {
   }
 
   resetForm(): void {
-    this.editRequestId = null;
+    this.resetFormState();
     this.createErrorMessage = '';
-    this.createForm = {
-      title: '',
-      description: '',
-      requesterName: '',
-      status: 'Open',
-    };
+    this.isDrawerOpen = false;
   }
 
   onLogout(): void {
@@ -313,6 +330,16 @@ export class ServiceRequestsPageComponent {
     this.searchTerm = '';
     this.selectedStatus = '';
     this.sortOption = 'created-desc';
+  }
+
+  private resetFormState(): void {
+    this.editRequestId = null;
+    this.createForm = {
+      title: '',
+      description: '',
+      requesterName: '',
+      status: 'Open',
+    };
   }
 
   private filterServiceRequests(

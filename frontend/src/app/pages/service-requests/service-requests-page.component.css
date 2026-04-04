@@ -31,7 +31,7 @@
 .service-requests-page {
   position: relative;
   min-height: 100%;
-  padding: 24px 20px 40px;
+  padding: 32px 28px 44px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0)),
     var(--page-bg);
@@ -42,7 +42,7 @@
 }
 
 .page-shell {
-  max-width: 1440px;
+  max-width: 1360px;
   margin: 0 auto;
   display: grid;
   gap: 20px;
@@ -725,7 +725,7 @@ select.control-input {
 
 @media (max-width: 760px) {
   .service-requests-page {
-    padding: 16px 14px 32px;
+    padding: 22px 18px 32px;
   }
 
   .page-header,

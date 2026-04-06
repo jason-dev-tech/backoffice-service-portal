@@ -1,25 +1,26 @@
 # Frontend - Backoffice Service Portal
 
-An Angular frontend for the **Backoffice Service Portal**, designed to
-work with an **ASP.NET Core Web API** backend and provide a complete
-full-stack interface for managing service requests.
+Angular frontend for the **Backoffice Service Portal**. This module
+provides the authenticated client application for logging in and working
+with service requests through the backend API.
 
-> ⚠️ This frontend is provided for **demonstration and portfolio
-> purposes only**. It is **not an open-source project**, and all rights
-> are reserved.
+> It is **not an open-source project**, and all rights are reserved.
 
 ------------------------------------------------------------------------
 
 ## 🚀 Features
 
--   Full CRUD UI for Service Requests (Create, Read, Update, Delete)
--   Integrated with ASP.NET Core Web API backend
--   Reactive state management using **RxJS + AsyncPipe (zoneless
-    Angular)**
+-   Login page backed by the API authentication endpoint
+-   Protected routing via an authentication guard
+-   HTTP interceptor that attaches bearer tokens and handles `401`
+    responses
+-   Service requests page for listing, creating, editing, and deleting
+    records
+-   Search, status filtering, sorting, and client-side pagination in the
+    request workspace
 -   Environment-based API configuration
--   Clean separation between UI, service layer, and models
--   Dynamic UI updates after create, update, and delete operations
--   Error handling for API operations
+-   Separation between pages, services, guards, interceptors, and models
+-   API error handling for login and service request operations
 
 ------------------------------------------------------------------------
 
@@ -27,8 +28,9 @@ full-stack interface for managing service requests.
 
 -   **Framework**: Angular
 -   **Application Type**: Single Page Application (SPA)
--   **State Management**: RxJS + AsyncPipe (zoneless Angular pattern)
+-   **Routing**: Login route and guarded service request route
 -   **API Communication**: Angular `HttpClient`
+-   **Authentication Flow**: Login → token storage → guarded requests
 -   **Configuration**: Angular environment files
 -   **Backend Integration**: ASP.NET Core Web API
 
@@ -50,13 +52,22 @@ full-stack interface for managing service requests.
 frontend/
 ├── src/
 │   ├── app/
+│   │   ├── guards/
+│   │   │   └── auth.guard.ts
+│   │   ├── interceptors/
+│   │   │   └── auth.interceptor.ts
 │   │   ├── models/
 │   │   │   └── service-request.model.ts
+│   │   ├── pages/
+│   │   │   ├── login/
+│   │   │   └── service-requests/
 │   │   ├── services/
+│   │   │   ├── auth.service.ts
 │   │   │   └── service-request.service.ts
 │   │   ├── app.ts
 │   │   ├── app.html
 │   │   ├── app.css
+│   │   ├── app.routes.ts
 │   │   └── app.config.ts
 │   └── environments/
 │       ├── environment.ts
@@ -97,6 +108,7 @@ This frontend depends on the backend API being available.
 
 Expected endpoints:
 
+-   `POST /api/Auth/login`
 -   `GET /api/ServiceRequests`
 -   `POST /api/ServiceRequests`
 -   `PUT /api/ServiceRequests/{id}`
@@ -124,40 +136,15 @@ Open:
 
 ------------------------------------------------------------------------
 
-## ▶️ Run with Backend
-
-1.  Start backend:
-
-``` bash
-cd BackofficeServicePortal.Api
-dotnet run
-```
-
-2.  Update environment config:
-
-```{=html}
-<!-- -->
-```
-    src/environments/environment.ts
-
-3.  Ensure backend CORS allows frontend origin
-
-4.  Start frontend:
-
-``` bash
-ng serve
-```
-
-------------------------------------------------------------------------
-
 ## 💡 Implementation Highlights
 
--   Reactive UI using AsyncPipe (no manual subscriptions)
--   Zoneless Angular-compatible state updates
--   Centralized API service layer
--   Clean separation of concerns (UI / Service / Model)
--   Automatic list refresh after CRUD operations
--   Form reuse for Create and Edit workflows
+-   Route-level access control is enforced before the service request
+    page loads
+-   Authentication state is maintained with token expiry checks in local
+    storage
+-   API requests are centralized in dedicated services
+-   The service request page combines list management and record
+    maintenance in a single workspace
 
 ------------------------------------------------------------------------
 
@@ -165,18 +152,15 @@ ng serve
 
 -   Requires backend to run on HTTPS for proper integration
 -   Uses environment-based configuration (no hardcoded URLs)
--   Designed for extensibility (routing, forms, validation)
+-   Depends on the backend for authentication and request data
 
 ------------------------------------------------------------------------
 
 ## 📈 Future Improvements
 
--   Form validation improvements (Reactive Forms / Validators)
--   User feedback (success/error notifications)
--   Routing for multi-page structure
--   Pagination and filtering
--   Authentication & authorization (JWT)
--   UI/UX improvements
+-   Frontend access control that reflects API roles in the UI
+-   Audit log views for individual service requests
+-   Additional test coverage
 
 ------------------------------------------------------------------------
 

@@ -1,8 +1,9 @@
-# Backoffice Service Portal API
+# Backoffice Service Portal
 
-A production-style full-stack project built with **ASP.NET Core Web API
-(.NET 8)** and **Angular**, demonstrating a scalable architecture with a
-dual-database design:
+A full-stack backoffice application for managing internal service
+requests, built with **ASP.NET Core Web API (.NET 8)** and **Angular**.
+The current implementation combines an authenticated SPA with a REST API
+and a dual-database design:
 
 -   **PostgreSQL** for primary business data
 -   **MongoDB (Docker-based)** for audit logging
@@ -13,45 +14,44 @@ dual-database design:
 
 ## 🚀 Features
 
--   Full CRUD operations for Service Requests (Create, Read, Update,
-    Delete)
--   Angular frontend integrated with ASP.NET Core Web API
--   Reactive state management using **RxJS + AsyncPipe (zoneless
-    Angular)**
+-   Login-based access to the backoffice UI using JWT authentication
+-   Protected Angular routes for authenticated users
+-   Service request management workflow covering create, list, update,
+    and delete operations
+-   Request workspace with search, status filtering, sorting, and
+    client-side pagination
 -   DTO-based API design (no direct entity exposure)
 -   Service layer architecture (Controller → Service → Data)
--   JWT authentication with role claims
--   Role-based authorization enforced on protected service request
-    endpoints
--   Centralized validation handling
--   PostgreSQL (EF Core) for core data persistence
--   MongoDB for audit logging (Created, Updated, Deleted)
--   Docker-based MongoDB setup with container lifecycle management
--   Swagger API documentation
--   Fail-safe logging (MongoDB failures do not break API operations)
+-   Role-based authorization on service request write operations
+-   Centralized validation responses for invalid API payloads
+-   PostgreSQL (EF Core) for core application data
+-   MongoDB for audit logging of create, update, and delete events
+-   Swagger available in development
+-   Fail-safe audit logging (MongoDB write failures do not block the API)
 
 ------------------------------------------------------------------------
 
 ## 🧱 Architecture
 
--   **Frontend**: Angular (SPA)
+-   **Frontend**: Angular standalone SPA
 -   **Backend**: ASP.NET Core Web API (.NET 8)
--   **Pattern**: Controller → Service → DbContext
+-   **Application Flow**: Angular client → authenticated API endpoints
+-   **Backend Pattern**: Controller → Service → DbContext
 -   **Primary Database**: PostgreSQL
 -   **Audit Logging**: MongoDB
 -   **API Contract**: DTO-based separation
 -   **Authentication**: JWT bearer tokens
 -   **Authorization**: Role-based access control (`Admin`,
     `Operator`, `Viewer`)
--   **Validation**: DataAnnotations + centralized error handling
--   **CORS**: Configuration-driven (no hardcoding)
+-   **Validation**: DataAnnotations + centralized model validation
+-   **CORS**: Configuration-driven allowed origins
 
 ------------------------------------------------------------------------
 
 ## 📦 Tech Stack
 
 -   ASP.NET Core Web API (.NET 8)
--   Angular (zoneless, AsyncPipe)
+-   Angular
 -   Entity Framework Core
 -   ASP.NET Core Authentication / Authorization
 -   PostgreSQL
@@ -71,6 +71,7 @@ dual-database design:
 -   `GET /api/ServiceRequests`
 -   `GET /api/ServiceRequests/{id}`
 -   `POST /api/ServiceRequests`
+-   `POST /api/ServiceRequests/batch`
 -   `PUT /api/ServiceRequests/{id}`
 -   `DELETE /api/ServiceRequests/{id}`
 
@@ -78,12 +79,20 @@ dual-database design:
 
 -   `GET /api/ServiceRequests/{id}/audit-logs`
 
-Service request read endpoints require authentication. Create and update
+All service request endpoints require authentication. Create and update
 operations require `Admin` or `Operator`, and delete requires `Admin`.
 
 ------------------------------------------------------------------------
 
 ## 🌐 Frontend Configuration
+
+The Angular application is configured to talk to the backend API
+through the environment files and currently provides:
+
+-   a login screen
+-   route protection via an auth guard
+-   automatic bearer token attachment through an HTTP interceptor
+-   a service request workspace for viewing and maintaining records
 
 File:
 
@@ -104,7 +113,7 @@ export const environment = {
 
 File:
 
-    BackofficeServicePortal.Api/appsettings.json
+    backend/BackofficeServicePortal.Api/appsettings.json
 
 Example:
 
@@ -118,7 +127,8 @@ Example:
 
 ## 🐳 Docker (MongoDB Setup)
 
-MongoDB is used for audit logging and runs locally via Docker.
+MongoDB is used only for audit logging and is expected to run locally
+via Docker.
 
 ### First-time setup
 
@@ -187,7 +197,7 @@ docker ps
 ### Backend
 
 ``` bash
-cd BackofficeServicePortal.Api
+cd backend/BackofficeServicePortal.Api
 dotnet run
 ```
 
@@ -206,13 +216,17 @@ Open:
 
 ## 💡 Key Design Highlights
 
--   Clean separation of concerns (Controller / Service / Data)
--   DTO layer prevents over-posting and entity exposure
--   Reactive frontend using AsyncPipe (zoneless Angular)
--   Dual-database architecture (SQL + NoSQL)
--   Fail-safe logging design
--   Environment-based configuration
--   Full-stack integration with clear boundaries
+-   The frontend and backend are separated cleanly, but operate as a
+    single backoffice application
+-   DTOs prevent direct entity exposure and keep the API contract
+    explicit
+-   Authentication is enforced in both routing and HTTP request flow
+-   Role-based access rules are applied where records are created,
+    changed, and deleted
+-   PostgreSQL remains the source of truth while MongoDB is limited to
+    audit history
+-   Configuration is environment-driven for API base URL, CORS, JWT, and
+    database settings
 
 ------------------------------------------------------------------------
 
@@ -220,16 +234,16 @@ Open:
 
 -   MongoDB is used only for audit logs
 -   PostgreSQL is the source of truth
--   Update environment ports before running locally
--   Backend must run on HTTPS for frontend integration
+-   The frontend currently consumes the API over HTTPS
+-   A bootstrap admin account can be created from configuration when the
+    application starts with an empty user store
 
 ------------------------------------------------------------------------
 
 ## 📈 Future Improvements
 
--   Frontend authentication workflow
--   Expanded role-based access control coverage
--   FluentValidation integration
+-   Audit log views in the frontend
+-   Broader UI coverage for role-specific workflows
 -   Unit & integration testing
 -   Cloud deployment (Azure / AWS)
 -   CI/CD pipeline

@@ -269,6 +269,8 @@ public class ServiceRequestService : IServiceRequestService
         return sort?.Trim() switch
         {
             "createdAt_asc" => query.OrderBy(sr => sr.CreatedAt),
+            "title_asc" => query.OrderBy(sr => sr.Title).ThenByDescending(sr => sr.CreatedAt),
+            "title_desc" => query.OrderByDescending(sr => sr.Title).ThenByDescending(sr => sr.CreatedAt),
             "status_asc" => query.OrderBy(sr => sr.Status).ThenByDescending(sr => sr.CreatedAt),
             "status_desc" => query.OrderByDescending(sr => sr.Status).ThenByDescending(sr => sr.CreatedAt),
             _ => query.OrderByDescending(sr => sr.CreatedAt)

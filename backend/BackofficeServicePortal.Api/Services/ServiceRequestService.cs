@@ -77,36 +77,32 @@ public class ServiceRequestService : IServiceRequestService
         };
     }
 
-    public async Task<PagedServiceRequestsResponseDto> GetAllAsync(
-        string? status = null,
-        string? search = null,
-        string? sort = null,
-        int page = 1,
-        int pageSize = 10)
+    public async Task<PagedServiceRequestsResponseDto> GetAllAsync(ServiceRequestQueryParams query)
     {
-        var normalizedPage = Math.Max(page, 1);
-        var normalizedPageSize = Math.Max(pageSize, 1);
+        var normalizedPage = Math.Max(query.Page, 1);
+        var normalizedPageSize = Math.Max(query.PageSize, 1);
 
-        var query = _dbContext.ServiceRequests
+        var serviceRequestsQuery = _dbContext.ServiceRequests
             .AsNoTracking()
             .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(status))
+        if (!string.IsNullOrWhiteSpace(query.Status))
         {
-            var normalizedStatus = status.Trim();
-            query = query.Where(sr => EF.Functions.ILike(sr.Status, normalizedStatus));
+            var normalizedStatus = query.Status.Trim();
+            serviceRequestsQuery = serviceRequestsQuery.Where(
+                sr => EF.Functions.ILike(sr.Status, normalizedStatus));
         }
 
-        if (!string.IsNullOrWhiteSpace(search))
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var normalizedSearch = $"%{search.Trim()}%";
-            query = query.Where(sr =>
+            var normalizedSearch = $"%{query.Search.Trim()}%";
+            serviceRequestsQuery = serviceRequestsQuery.Where(sr =>
                 EF.Functions.ILike(sr.Title, normalizedSearch) ||
                 EF.Functions.ILike(sr.Description, normalizedSearch) ||
                 EF.Functions.ILike(sr.RequesterName, normalizedSearch));
         }
 
-        var totalCount = await query.CountAsync();
+        var totalCount = await serviceRequestsQuery.CountAsync();
         var totalPages = totalCount == 0
             ? 0
             : (int)Math.Ceiling((double)totalCount / normalizedPageSize);
@@ -114,9 +110,9 @@ public class ServiceRequestService : IServiceRequestService
             ? totalPages
             : normalizedPage;
 
-        query = ApplySorting(query, sort);
+        serviceRequestsQuery = ApplySorting(serviceRequestsQuery, query.Sort);
 
-        var items = await query
+        var items = await serviceRequestsQuery
             .Skip((effectivePage - 1) * normalizedPageSize)
             .Take(normalizedPageSize)
             .Select(sr => sr.ToResponseDto())

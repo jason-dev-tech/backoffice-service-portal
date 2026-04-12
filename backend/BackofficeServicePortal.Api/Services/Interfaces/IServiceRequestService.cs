@@ -5,12 +5,7 @@ namespace BackofficeServicePortal.Api.Services.Interfaces;
 public interface IServiceRequestService
 {
     Task<ServiceRequestDashboardDto> GetDashboardAsync();
-    Task<PagedServiceRequestsResponseDto> GetAllAsync(
-        string? status = null,
-        string? search = null,
-        string? sort = null,
-        int page = 1,
-        int pageSize = 10);
+    Task<PagedServiceRequestsResponseDto> GetAllAsync(ServiceRequestQueryParams query);
     Task<ServiceRequestResponseDto?> GetByIdAsync(int id);
     Task<ServiceRequestResponseDto> CreateAsync(CreateServiceRequestDto dto);
     Task<IEnumerable<ServiceRequestResponseDto>> CreateBatchAsync(IEnumerable<CreateServiceRequestDto> dtos);

@@ -110,9 +110,11 @@
                   </div>
                 }
 
-                <button type="button" class="button button-primary" (click)="openCreateDrawer()">
-                  Create Service Request
-                </button>
+                @if (canCreateServiceRequest) {
+                  <button type="button" class="button button-primary" (click)="openCreateDrawer()">
+                    Create Service Request
+                  </button>
+                }
               </div>
             </div>
 
@@ -163,23 +165,27 @@
                         <td>{{ request.updatedAt ?? '-' }}</td>
                         <td>
                           <div class="row-actions">
-                            <button
-                              type="button"
-                              class="button button-secondary button-small"
-                              (click)="startEdit(request)"
-                              [disabled]="deletingRequestId === request.id"
-                            >
-                              Edit
-                            </button>
+                            @if (canEditServiceRequest) {
+                              <button
+                                type="button"
+                                class="button button-secondary button-small"
+                                (click)="startEdit(request)"
+                                [disabled]="deletingRequestId === request.id"
+                              >
+                                Edit
+                              </button>
+                            }
 
-                            <button
-                              type="button"
-                              class="button button-danger button-small"
-                              (click)="deleteRequest(request)"
-                              [disabled]="deletingRequestId === request.id"
-                            >
-                              {{ deletingRequestId === request.id ? 'Deleting...' : 'Delete' }}
-                            </button>
+                            @if (canDeleteServiceRequest) {
+                              <button
+                                type="button"
+                                class="button button-danger button-small"
+                                (click)="deleteRequest(request)"
+                                [disabled]="deletingRequestId === request.id"
+                              >
+                                {{ deletingRequestId === request.id ? 'Deleting...' : 'Delete' }}
+                              </button>
+                            }
                           </div>
                         </td>
                       </tr>

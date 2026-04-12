@@ -12,9 +12,7 @@ import { ServiceRequest } from '../../models/service-request.model';
 
 type ServiceRequestSortOption =
   | 'createdAt_desc'
-  | 'createdAt_asc'
-  | 'status_asc'
-  | 'status_desc';
+  | 'createdAt_asc';
 
 type ServiceRequestViewState = {
   isLoading: boolean;

@@ -95,30 +95,23 @@ export class ServiceRequestsPageComponent {
       this.serviceRequestService
         .getServiceRequests({
           status: selectedStatus,
+          search: searchTerm,
           page: currentPage,
           pageSize: this.pageSize,
           sort: sortOption,
         })
         .pipe(
           map(
-            (response: PagedServiceRequestsResponse): ServiceRequestViewState => {
-              const filteredServiceRequests = this.filterServiceRequests(
-                response.items,
-                searchTerm,
-                selectedStatus,
-              );
-
-              return {
-                isLoading: false,
-                errorMessage: '',
-                serviceRequests: filteredServiceRequests,
-                currentPage: response.page,
-                pageSize: response.pageSize,
-                totalPages: response.totalPages,
-                totalFilteredCount: searchTerm.trim() ? filteredServiceRequests.length : response.totalCount,
-                visibleCount: filteredServiceRequests.length,
-              };
-            },
+            (response: PagedServiceRequestsResponse): ServiceRequestViewState => ({
+              isLoading: false,
+              errorMessage: '',
+              serviceRequests: response.items,
+              currentPage: response.page,
+              pageSize: response.pageSize,
+              totalPages: response.totalPages,
+              totalFilteredCount: response.totalCount,
+              visibleCount: response.items.length,
+            }),
           ),
           startWith({
             isLoading: true,
@@ -339,23 +332,6 @@ export class ServiceRequestsPageComponent {
       requesterName: '',
       status: 'Open',
     };
-  }
-
-  private filterServiceRequests(
-    serviceRequests: ServiceRequest[],
-    searchTerm: string,
-    selectedStatus: string,
-  ): ServiceRequest[] {
-    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-    const normalizedSelectedStatus = selectedStatus.trim().toLowerCase();
-
-    return serviceRequests.filter((request) =>
-      (!normalizedSearchTerm ||
-        [request.title, request.description, request.status].some((value) =>
-          value.toLowerCase().includes(normalizedSearchTerm),
-        )) &&
-      (!normalizedSelectedStatus || request.status.toLowerCase() === normalizedSelectedStatus),
-    );
   }
 
   private getInitialStatusFilter(): string {

@@ -39,6 +39,7 @@ export class ServiceRequestService {
 
   getServiceRequests(params?: {
     status?: string;
+    search?: string;
     page?: number;
     pageSize?: number;
     sort?: string;
@@ -47,6 +48,10 @@ export class ServiceRequestService {
 
     if (params?.status?.trim()) {
       queryParams.set('status', params.status.trim());
+    }
+
+    if (params?.search?.trim()) {
+      queryParams.set('search', params.search.trim());
     }
 
     if (params?.sort?.trim()) {

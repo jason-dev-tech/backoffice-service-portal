@@ -8,13 +8,6 @@
           Track the current service request workload from a single summary view.
         </p>
       </div>
-
-      <div class="page-header__actions">
-        <button type="button" class="button button-secondary" (click)="goToServiceRequests()">
-          Service Requests
-        </button>
-        <button type="button" class="button button-secondary" (click)="onLogout()">Logout</button>
-      </div>
     </header>
 
     @if (viewState$ | async; as vm) {

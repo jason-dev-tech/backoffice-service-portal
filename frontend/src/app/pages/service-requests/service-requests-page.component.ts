@@ -1,8 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
-import { AuthService } from '../../services/auth.service';
 import {
   CreateServiceRequestRequest,
   ServiceRequestService,
@@ -37,8 +35,6 @@ type ServiceRequestViewState = {
   styleUrls: ['./service-requests-page.component.css'],
 })
 export class ServiceRequestsPageComponent {
-  private authService = inject(AuthService);
-  private router = inject(Router);
   private serviceRequestService = inject(ServiceRequestService);
   private refreshTrigger$ = new BehaviorSubject<void>(undefined);
   private currentPage$ = new BehaviorSubject<number>(1);
@@ -318,15 +314,6 @@ export class ServiceRequestsPageComponent {
     this.resetFormState();
     this.createErrorMessage = '';
     this.isDrawerOpen = false;
-  }
-
-  onLogout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/login']);
-  }
-
-  goToDashboard(): void {
-    void this.router.navigate(['/dashboard']);
   }
 
   resetFilters(): void {

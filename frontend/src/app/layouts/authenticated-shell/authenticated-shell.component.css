@@ -1,0 +1,139 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #edf1f5;
+}
+
+.authenticated-shell {
+  min-height: inherit;
+}
+
+.shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 28px;
+  background: rgba(247, 249, 252, 0.94);
+  border-bottom: 1px solid #d6dde6;
+  backdrop-filter: blur(12px);
+}
+
+.shell-header__content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+}
+
+.shell-brand {
+  display: grid;
+  gap: 4px;
+}
+
+.shell-kicker {
+  margin: 0;
+  color: #556476;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shell-title {
+  margin: 0;
+  color: #101827;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.shell-nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shell-nav__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  color: #162334;
+  font-weight: 600;
+  text-decoration: none;
+  background: #f3f6f8;
+  border: 1px solid #d6dde6;
+  border-radius: 10px;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.shell-nav__link:hover {
+  background: #ebf0f5;
+  transform: translateY(-1px);
+}
+
+.shell-nav__link-active {
+  color: #ffffff;
+  background: #185adb;
+  border-color: #185adb;
+}
+
+.shell-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  color: #162334;
+  font: inherit;
+  font-weight: 600;
+  background: #f3f6f8;
+  border: 1px solid #d6dde6;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.shell-button:hover {
+  background: #ebf0f5;
+  transform: translateY(-1px);
+}
+
+.shell-button:focus-visible,
+.shell-nav__link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(24, 90, 219, 0.14);
+}
+
+.shell-main {
+  min-height: calc(100vh - 77px);
+}
+
+@media (max-width: 820px) {
+  .shell-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 20px;
+  }
+
+  .shell-header__content {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}

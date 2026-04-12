@@ -1,0 +1,36 @@
+<div class="authenticated-shell">
+  <header class="shell-header">
+    <div class="shell-header__content">
+      <div class="shell-brand">
+        <p class="shell-kicker">Operations</p>
+        <p class="shell-title">Backoffice Service Portal</p>
+      </div>
+
+      <nav class="shell-nav" aria-label="Primary">
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="shell-nav__link-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="shell-nav__link"
+        >
+          Dashboard
+        </a>
+        <a
+          routerLink="/service-requests"
+          routerLinkActive="shell-nav__link-active"
+          class="shell-nav__link"
+        >
+          Service Requests
+        </a>
+      </nav>
+    </div>
+
+    <div class="shell-header__actions">
+      <button type="button" class="shell-button" (click)="onLogout()">Logout</button>
+    </div>
+  </header>
+
+  <main class="shell-main">
+    <router-outlet />
+  </main>
+</div>

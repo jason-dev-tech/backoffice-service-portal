@@ -1,8 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { catchError, map, of, startWith } from 'rxjs';
-import { AuthService } from '../../services/auth.service';
 import { ServiceRequestService } from '../../services/service-request.service';
 
 type DashboardViewState = {
@@ -24,8 +22,6 @@ type DashboardViewState = {
   styleUrls: ['./dashboard-page.component.css'],
 })
 export class DashboardPageComponent {
-  private authService = inject(AuthService);
-  private router = inject(Router);
   private serviceRequestService = inject(ServiceRequestService);
 
   viewState$ = this.serviceRequestService.getDashboard().pipe(
@@ -61,13 +57,4 @@ export class DashboardPageComponent {
       });
     }),
   );
-
-  goToServiceRequests(): void {
-    void this.router.navigate(['/service-requests']);
-  }
-
-  onLogout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/login']);
-  }
 }

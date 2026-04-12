@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import {
   CreateServiceRequestRequest,
@@ -35,11 +36,12 @@ type ServiceRequestViewState = {
   styleUrls: ['./service-requests-page.component.css'],
 })
 export class ServiceRequestsPageComponent {
+  private route = inject(ActivatedRoute);
   private serviceRequestService = inject(ServiceRequestService);
   private refreshTrigger$ = new BehaviorSubject<void>(undefined);
   private currentPage$ = new BehaviorSubject<number>(1);
   private searchTerm$ = new BehaviorSubject<string>('');
-  private selectedStatus$ = new BehaviorSubject<string>('');
+  private selectedStatus$ = new BehaviorSubject<string>(this.getInitialStatusFilter());
   private sortOption$ = new BehaviorSubject<ServiceRequestSortOption>('created-desc');
 
   createForm = {
@@ -398,5 +400,17 @@ export class ServiceRequestsPageComponent {
     });
 
     return sortedServiceRequests;
+  }
+
+  private getInitialStatusFilter(): string {
+    const status = this.route.snapshot.queryParamMap.get('status')?.trim();
+
+    if (!status) {
+      return '';
+    }
+
+    const allowedStatuses = new Set(['Open', 'In Progress', 'Closed']);
+
+    return allowedStatuses.has(status) ? status : '';
   }
 }

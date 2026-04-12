@@ -118,6 +118,33 @@
   border-radius: var(--radius-md);
 }
 
+.kpi-card-action,
+.distribution-item-action {
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.kpi-card-action:hover,
+.distribution-item-action:hover {
+  border-color: #c3ccd8;
+  background: #fbfcfe;
+  transform: translateY(-1px);
+}
+
+.kpi-card-action:focus-visible,
+.distribution-item-action:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
 .kpi-label {
   margin: 0;
   color: var(--text-secondary);

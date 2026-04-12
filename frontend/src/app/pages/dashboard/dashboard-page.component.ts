@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { catchError, map, of, startWith } from 'rxjs';
 import { ServiceRequestDashboard } from '../../models/service-request-dashboard.model';
 import { ServiceRequestService } from '../../services/service-request.service';
@@ -18,6 +19,7 @@ type DashboardViewState = {
   styleUrls: ['./dashboard-page.component.css'],
 })
 export class DashboardPageComponent {
+  private router = inject(Router);
   private serviceRequestService = inject(ServiceRequestService);
 
   viewState$ = this.serviceRequestService.getDashboard().pipe(
@@ -63,4 +65,10 @@ export class DashboardPageComponent {
       });
     }),
   );
+
+  drillDownToStatus(status: string): void {
+    void this.router.navigate(['/service-requests'], {
+      queryParams: { status },
+    });
+  }
 }

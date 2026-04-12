@@ -34,20 +34,32 @@
               <p class="kpi-value">{{ vm.dashboard.totalRequests }}</p>
             </article>
 
-            <article class="kpi-card">
+            <button
+              type="button"
+              class="kpi-card kpi-card-action"
+              (click)="drillDownToStatus('Open')"
+            >
               <p class="kpi-label">Open</p>
               <p class="kpi-value">{{ vm.dashboard.openRequests }}</p>
-            </article>
+            </button>
 
-            <article class="kpi-card">
+            <button
+              type="button"
+              class="kpi-card kpi-card-action"
+              (click)="drillDownToStatus('In Progress')"
+            >
               <p class="kpi-label">In Progress</p>
               <p class="kpi-value">{{ vm.dashboard.inProgressRequests }}</p>
-            </article>
+            </button>
 
-            <article class="kpi-card">
+            <button
+              type="button"
+              class="kpi-card kpi-card-action"
+              (click)="drillDownToStatus('Closed')"
+            >
               <p class="kpi-label">Closed</p>
               <p class="kpi-value">{{ vm.dashboard.closedRequests }}</p>
-            </article>
+            </button>
           </div>
         }
       </section>
@@ -78,7 +90,11 @@
         } @else {
           <div class="distribution-list">
             @for (item of vm.dashboard.statusDistribution; track item.status) {
-              <article class="distribution-item">
+              <button
+                type="button"
+                class="distribution-item distribution-item-action"
+                (click)="drillDownToStatus(item.status)"
+              >
                 <div class="distribution-item__header">
                   <span class="status-pill" [attr.data-status]="item.status">{{ item.status }}</span>
                   <p class="distribution-item__meta">{{ item.count }} requests</p>
@@ -89,7 +105,7 @@
                 </div>
 
                 <p class="distribution-item__percentage">{{ item.percentage }}%</p>
-              </article>
+              </button>
             }
           </div>
         }

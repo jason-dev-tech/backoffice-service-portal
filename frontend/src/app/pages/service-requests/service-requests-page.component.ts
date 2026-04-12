@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 import {
   CreateServiceRequestRequest,
   PagedServiceRequestsResponse,
@@ -35,6 +36,7 @@ type ServiceRequestViewState = {
   styleUrls: ['./service-requests-page.component.css'],
 })
 export class ServiceRequestsPageComponent {
+  private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
   private serviceRequestService = inject(ServiceRequestService);
   private refreshTrigger$ = new BehaviorSubject<void>(undefined);
@@ -61,6 +63,18 @@ export class ServiceRequestsPageComponent {
 
   get searchTerm(): string {
     return this.searchTerm$.value;
+  }
+
+  get canCreateServiceRequest(): boolean {
+    return this.authService.canCreateServiceRequest();
+  }
+
+  get canEditServiceRequest(): boolean {
+    return this.authService.canEditServiceRequest();
+  }
+
+  get canDeleteServiceRequest(): boolean {
+    return this.authService.canDeleteServiceRequest();
   }
 
   set searchTerm(value: string) {

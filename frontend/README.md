@@ -1,8 +1,8 @@
 # Frontend - Backoffice Service Portal
 
-Angular frontend for the **Backoffice Service Portal**. This module
-provides the authenticated client application for logging in and working
-with service requests through the backend API.
+Angular-based UI for the **Backoffice Service Portal**. This frontend
+provides the authenticated user experience for the backoffice system and
+consumes the ASP.NET Core Web API.
 
 > It is **not an open-source project**, and all rights are reserved.
 
@@ -11,14 +11,17 @@ with service requests through the backend API.
 ## 🚀 Features
 
 -   Login page backed by the API authentication endpoint
--   Guarded dashboard page with service request summary counts
+-   Service request management UI for listing, creating, editing, and
+    deleting records
+-   Dashboard view with summary reporting and drill-down into the
+    service request workspace
+-   API-driven querying for service requests:
+    filtering, keyword search, sorting (`createdAt`, `title`), and
+    pagination
+-   Multi-page navigation through an authenticated app shell
 -   Protected routing via an authentication guard
 -   HTTP interceptor that attaches bearer tokens and handles `401`
     responses
--   Service requests page for listing, creating, editing, and deleting
-    records
--   Search, status filtering, sorting, and client-side pagination in the
-    request workspace
 -   Environment-based API configuration
 -   Separation between pages, services, guards, interceptors, and models
 -   API error handling for login and service request operations
@@ -27,13 +30,15 @@ with service requests through the backend API.
 
 ## 🧱 Architecture
 
--   **Framework**: Angular
+-   **Framework**: Angular standalone components
 -   **Application Type**: Single Page Application (SPA)
--   **Routing**: Login route, guarded dashboard route, and guarded
-    service request route
+-   **Routing**: Login route plus authenticated shell routes for
+    dashboard and service requests
 -   **Views**: Login page, guarded dashboard page, guarded service
     requests page
--   **API Communication**: Angular `HttpClient`
+-   **State / Rendering**: RxJS streams with `AsyncPipe`
+-   **API Communication**: Angular `HttpClient` through a dedicated
+    service layer
 -   **Authentication Flow**: Login → token storage → guarded requests
 -   **Configuration**: Angular environment files
 -   **Backend Integration**: ASP.NET Core Web API
@@ -108,9 +113,18 @@ export const environment = {
 
 ------------------------------------------------------------------------
 
-## 🔌 Backend Dependency
+## 🔌 API Integration
 
 This frontend depends on the backend API being available.
+
+All service request querying is handled by the backend. The frontend
+sends query parameters for:
+
+-   `status`
+-   `search`
+-   `sort`
+-   `page`
+-   `pageSize`
 
 Expected endpoints:
 
@@ -150,6 +164,8 @@ Open:
 -   Authentication state is maintained with token expiry checks in local
     storage
 -   API requests are centralized in dedicated services
+-   Query-driven list behavior is delegated to the backend API rather
+    than handled in-memory in the client
 -   The dashboard reuses the service request domain to provide a compact
     reporting view
 -   The service request page combines list management and record

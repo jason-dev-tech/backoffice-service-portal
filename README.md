@@ -1,9 +1,9 @@
 # Backoffice Service Portal
 
-A full-stack backoffice application for managing internal service
-requests, built with **ASP.NET Core Web API (.NET 8)** and **Angular**.
-The current implementation combines an authenticated SPA with a REST API,
-an operations dashboard, and a dual-database design:
+A production-style full-stack backoffice system focused on internal
+service request management, built with **ASP.NET Core Web API (.NET 8)**
+and **Angular**. The current implementation combines an authenticated
+SPA, a REST API, an operational dashboard, and a dual-database design:
 
 -   **PostgreSQL** for primary business data
 -   **MongoDB (Docker-based)** for audit logging
@@ -16,13 +16,15 @@ an operations dashboard, and a dual-database design:
 
 -   Login-based access to the backoffice UI using JWT authentication
 -   Protected Angular routes for authenticated users
--   Authenticated dashboard with service request summary counts
+-   Authenticated dashboard with summary reporting and drill-down into
+    the service request workspace
 -   Service request management workflow covering create, list, update,
     and delete operations
--   Request workspace with search, status filtering, sorting, and
-    client-side pagination
+-   Backend-driven querying for the service request workspace:
+    filtering (`status`), keyword search (`title`, `description`,
+    `requesterName`), sorting (`createdAt`, `title`), and pagination
 -   DTO-based API design (no direct entity exposure)
--   Service layer architecture (Controller → Service → Data)
+-   Service layer architecture (Controller → Service → DbContext)
 -   Role-based authorization on service request write operations
 -   Centralized validation responses for invalid API payloads
 -   PostgreSQL (EF Core) for core application data
@@ -34,13 +36,12 @@ an operations dashboard, and a dual-database design:
 
 ## 🧱 Architecture
 
--   **Frontend**: Angular standalone SPA
--   **Backend**: ASP.NET Core Web API (.NET 8)
+-   **Backend**: ASP.NET Core Web API (.NET 8), PostgreSQL for
+    operational data, MongoDB for audit logs
+-   **Frontend**: Angular standalone SPA using RxJS and `AsyncPipe`
 -   **Application Flow**: Angular client → authenticated API endpoints
 -   **Client Views**: Login, dashboard, and service request workspace
 -   **Backend Pattern**: Controller → Service → DbContext
--   **Primary Database**: PostgreSQL
--   **Audit Logging**: MongoDB
 -   **API Contract**: DTO-based separation
 -   **Authentication**: JWT bearer tokens
 -   **Authorization**: Role-based access control (`Admin`,
@@ -50,10 +51,22 @@ an operations dashboard, and a dual-database design:
 
 ------------------------------------------------------------------------
 
+## 🗄️ Data Architecture
+
+-   **PostgreSQL** is the primary database for structured transactional
+    data, including service requests, users, roles, and related
+    application records.
+-   **MongoDB** is used for flexible, append-only audit logs that track
+    service request changes without affecting the main transactional
+    workflow.
+
+------------------------------------------------------------------------
+
 ## 📦 Tech Stack
 
 -   ASP.NET Core Web API (.NET 8)
 -   Angular
+-   RxJS
 -   Entity Framework Core
 -   ASP.NET Core Authentication / Authorization
 -   PostgreSQL
@@ -62,7 +75,23 @@ an operations dashboard, and a dual-database design:
 
 ------------------------------------------------------------------------
 
-## 📡 API Endpoints
+## 📡 API Capabilities
+
+### Service Request Querying
+
+`GET /api/ServiceRequests` supports database-level querying through
+optional query parameters:
+
+-   `status`
+-   `search`
+-   `sort`
+-   `page`
+-   `pageSize`
+
+Filtering, search, sorting, and pagination are executed in PostgreSQL
+through the API query pipeline rather than in-memory in the client.
+
+### Endpoints
 
 ### Authentication
 
@@ -83,6 +112,18 @@ an operations dashboard, and a dual-database design:
 
 All service request endpoints require authentication. Create and update
 operations require `Admin` or `Operator`, and delete requires `Admin`.
+
+------------------------------------------------------------------------
+
+## 📁 Project Structure
+
+``` text
+backend/
+  BackofficeServicePortal.Api/
+
+frontend/
+  src/
+```
 
 ------------------------------------------------------------------------
 

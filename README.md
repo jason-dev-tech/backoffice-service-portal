@@ -198,7 +198,14 @@ docker ps
 
 ``` bash
 cd backend/BackofficeServicePortal.Api
-dotnet run
+dotnet run --launch-profile https
+```
+
+HTTPS is required for frontend integration during local development.
+If the local development certificate is not trusted, run:
+
+``` bash
+dotnet dev-certs https --trust
 ```
 
 ### Frontend

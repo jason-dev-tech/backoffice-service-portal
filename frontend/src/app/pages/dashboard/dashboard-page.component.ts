@@ -1,17 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { catchError, map, of, startWith } from 'rxjs';
+import { ServiceRequestDashboard } from '../../models/service-request-dashboard.model';
 import { ServiceRequestService } from '../../services/service-request.service';
 
 type DashboardViewState = {
   isLoading: boolean;
   errorMessage: string;
-  summary: {
-    totalRequests: number;
-    openRequests: number;
-    inProgressRequests: number;
-    closedRequests: number;
-  };
+  dashboard: ServiceRequestDashboard;
 };
 
 @Component({
@@ -26,20 +22,25 @@ export class DashboardPageComponent {
 
   viewState$ = this.serviceRequestService.getDashboard().pipe(
     map(
-      (summary): DashboardViewState => ({
+      (dashboard): DashboardViewState => ({
         isLoading: false,
         errorMessage: '',
-        summary,
+        dashboard,
       }),
     ),
     startWith({
       isLoading: true,
       errorMessage: '',
-      summary: {
+      dashboard: {
         totalRequests: 0,
         openRequests: 0,
         inProgressRequests: 0,
         closedRequests: 0,
+        oldestOpenRequestCreatedAt: null,
+        mostRecentRequestCreatedAt: null,
+        openSharePercentage: 0,
+        closedSharePercentage: 0,
+        statusDistribution: [],
       },
     }),
     catchError((error) => {
@@ -48,11 +49,16 @@ export class DashboardPageComponent {
       return of({
         isLoading: false,
         errorMessage: 'Failed to load dashboard summary.',
-        summary: {
+        dashboard: {
           totalRequests: 0,
           openRequests: 0,
           inProgressRequests: 0,
           closedRequests: 0,
+          oldestOpenRequestCreatedAt: null,
+          mostRecentRequestCreatedAt: null,
+          openSharePercentage: 0,
+          closedSharePercentage: 0,
+          statusDistribution: [],
         },
       });
     }),

@@ -31,22 +31,118 @@
           <div class="kpi-grid">
             <article class="kpi-card">
               <p class="kpi-label">Total Requests</p>
-              <p class="kpi-value">{{ vm.summary.totalRequests }}</p>
+              <p class="kpi-value">{{ vm.dashboard.totalRequests }}</p>
             </article>
 
             <article class="kpi-card">
               <p class="kpi-label">Open</p>
-              <p class="kpi-value">{{ vm.summary.openRequests }}</p>
+              <p class="kpi-value">{{ vm.dashboard.openRequests }}</p>
             </article>
 
             <article class="kpi-card">
               <p class="kpi-label">In Progress</p>
-              <p class="kpi-value">{{ vm.summary.inProgressRequests }}</p>
+              <p class="kpi-value">{{ vm.dashboard.inProgressRequests }}</p>
             </article>
 
             <article class="kpi-card">
               <p class="kpi-label">Closed</p>
-              <p class="kpi-value">{{ vm.summary.closedRequests }}</p>
+              <p class="kpi-value">{{ vm.dashboard.closedRequests }}</p>
+            </article>
+          </div>
+        }
+      </section>
+
+      <section
+        class="surface-card distribution-card"
+        aria-labelledby="status-distribution-heading"
+      >
+        <div class="section-heading">
+          <div>
+            <h2 id="status-distribution-heading">Status Distribution</h2>
+            <p>Current mix of requests across the active workflow.</p>
+          </div>
+        </div>
+
+        @if (vm.isLoading) {
+          <div class="dashboard-state">
+            <p>Loading status distribution...</p>
+          </div>
+        } @else if (vm.errorMessage) {
+          <div class="dashboard-state dashboard-state-error">
+            <p>{{ vm.errorMessage }}</p>
+          </div>
+        } @else if (vm.dashboard.statusDistribution.length === 0) {
+          <div class="dashboard-state">
+            <p>No service request distribution available yet.</p>
+          </div>
+        } @else {
+          <div class="distribution-list">
+            @for (item of vm.dashboard.statusDistribution; track item.status) {
+              <article class="distribution-item">
+                <div class="distribution-item__header">
+                  <span class="status-pill" [attr.data-status]="item.status">{{ item.status }}</span>
+                  <p class="distribution-item__meta">{{ item.count }} requests</p>
+                </div>
+
+                <div class="distribution-bar">
+                  <div class="distribution-bar__fill" [style.width.%]="item.percentage"></div>
+                </div>
+
+                <p class="distribution-item__percentage">{{ item.percentage }}%</p>
+              </article>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="surface-card highlights-card" aria-labelledby="operational-highlights-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="operational-highlights-heading">Operational Highlights</h2>
+            <p>Snapshot metrics derived from current service request activity.</p>
+          </div>
+        </div>
+
+        @if (vm.isLoading) {
+          <div class="dashboard-state">
+            <p>Loading operational highlights...</p>
+          </div>
+        } @else if (vm.errorMessage) {
+          <div class="dashboard-state dashboard-state-error">
+            <p>{{ vm.errorMessage }}</p>
+          </div>
+        } @else {
+          <div class="highlights-grid">
+            <article class="highlight-card">
+              <p class="highlight-label">Oldest Open Request</p>
+              <p class="highlight-value">
+                {{
+                  vm.dashboard.oldestOpenRequestCreatedAt
+                    ? (vm.dashboard.oldestOpenRequestCreatedAt | date: 'mediumDate')
+                    : 'No open requests'
+                }}
+              </p>
+            </article>
+
+            <article class="highlight-card">
+              <p class="highlight-label">Most Recent Request</p>
+              <p class="highlight-value">
+                {{
+                  vm.dashboard.mostRecentRequestCreatedAt
+                    ? (vm.dashboard.mostRecentRequestCreatedAt | date: 'mediumDate')
+                    : 'No requests yet'
+                }}
+              </p>
+            </article>
+
+            <article class="highlight-card">
+              <p class="highlight-label">Open Share</p>
+              <p class="highlight-value">{{ vm.dashboard.openSharePercentage }}%</p>
+            </article>
+
+            <article class="highlight-card">
+              <p class="highlight-label">Closed Share</p>
+              <p class="highlight-value">{{ vm.dashboard.closedSharePercentage }}%</p>
             </article>
           </div>
         }

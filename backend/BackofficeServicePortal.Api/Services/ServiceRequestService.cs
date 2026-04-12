@@ -28,23 +28,52 @@ public class ServiceRequestService : IServiceRequestService
 
     public async Task<ServiceRequestDashboardDto> GetDashboardAsync()
     {
-        var statusCounts = await _dbContext.ServiceRequests
+        var serviceRequests = await _dbContext.ServiceRequests
+            .AsNoTracking()
+            .OrderBy(sr => sr.CreatedAt)
+            .ToListAsync();
+
+        var statusCounts = serviceRequests
             .GroupBy(sr => sr.Status)
             .Select(group => new ServiceRequestStatusCount
             {
                 Status = group.Key,
                 Count = group.Count()
             })
-            .ToListAsync();
+            .ToList();
 
         var totalRequests = statusCounts.Sum(item => item.Count);
+        var openRequests = GetStatusCount(statusCounts, "Open");
+        var inProgressRequests = GetStatusCount(statusCounts, "In Progress");
+        var closedRequests = GetStatusCount(statusCounts, "Closed");
+        var oldestOpenRequestCreatedAt = serviceRequests
+            .Where(sr => string.Equals(sr.Status, "Open", StringComparison.OrdinalIgnoreCase))
+            .Select(sr => (DateTime?)sr.CreatedAt)
+            .FirstOrDefault();
+        var mostRecentRequestCreatedAt = serviceRequests
+            .OrderByDescending(sr => sr.CreatedAt)
+            .Select(sr => (DateTime?)sr.CreatedAt)
+            .FirstOrDefault();
 
         return new ServiceRequestDashboardDto
         {
             TotalRequests = totalRequests,
-            OpenRequests = GetStatusCount(statusCounts, "Open"),
-            InProgressRequests = GetStatusCount(statusCounts, "In Progress"),
-            ClosedRequests = GetStatusCount(statusCounts, "Closed")
+            OpenRequests = openRequests,
+            InProgressRequests = inProgressRequests,
+            ClosedRequests = closedRequests,
+            OldestOpenRequestCreatedAt = oldestOpenRequestCreatedAt,
+            MostRecentRequestCreatedAt = mostRecentRequestCreatedAt,
+            OpenSharePercentage = GetPercentage(openRequests, totalRequests),
+            ClosedSharePercentage = GetPercentage(closedRequests, totalRequests),
+            StatusDistribution = statusCounts
+                .OrderByDescending(item => item.Count)
+                .Select(item => new ServiceRequestStatusDistributionDto
+                {
+                    Status = item.Status,
+                    Count = item.Count,
+                    Percentage = GetPercentage(item.Count, totalRequests)
+                })
+                .ToList()
         };
     }
 
@@ -175,5 +204,15 @@ public class ServiceRequestService : IServiceRequestService
         }
 
         return 0;
+    }
+
+    private static double GetPercentage(int count, int total)
+    {
+        if (total == 0)
+        {
+            return 0;
+        }
+
+        return Math.Round((double)count / total * 100, 1);
     }
 }

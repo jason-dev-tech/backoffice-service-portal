@@ -98,6 +98,11 @@
   line-height: 1.5;
 }
 
+.distribution-card,
+.highlights-card {
+  gap: 18px;
+}
+
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -149,6 +154,115 @@
   border-color: var(--error-border);
 }
 
+.distribution-list,
+.highlights-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.distribution-item,
+.highlight-card {
+  padding: 18px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.distribution-item {
+  display: grid;
+  gap: 12px;
+}
+
+.distribution-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.distribution-item__meta,
+.distribution-item__percentage,
+.highlight-label,
+.highlight-value {
+  margin: 0;
+}
+
+.distribution-item__meta,
+.highlight-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.distribution-bar {
+  height: 12px;
+  overflow: hidden;
+  background: #e6ecf3;
+  border-radius: 999px;
+}
+
+.distribution-bar__fill {
+  height: 100%;
+  min-width: 6px;
+  background: linear-gradient(90deg, #185adb, #4f85f0);
+  border-radius: inherit;
+}
+
+.distribution-item__percentage {
+  color: var(--heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.highlights-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.highlight-card {
+  display: grid;
+  gap: 10px;
+}
+
+.highlight-value {
+  color: var(--heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: #eef3f8;
+  border: 1px solid #d7e0ea;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-pill[data-status='Closed'] {
+  background: #edf7ef;
+  border-color: #c8decf;
+  color: #29623a;
+}
+
+.status-pill[data-status='In Progress'] {
+  background: #fff6e8;
+  border-color: #efd7aa;
+  color: #8a5a12;
+}
+
+.status-pill[data-status='Open'] {
+  background: #edf4ff;
+  border-color: #cad9f4;
+  color: #1d4f9c;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -190,6 +304,10 @@
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .highlights-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -209,6 +327,10 @@
   }
 
   .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .highlights-grid {
     grid-template-columns: 1fr;
   }
 }

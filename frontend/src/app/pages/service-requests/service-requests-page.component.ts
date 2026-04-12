@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import {
   CreateServiceRequestRequest,
+  PagedServiceRequestsResponse,
   ServiceRequestService,
   UpdateServiceRequestRequest,
 } from '../../services/service-request.service';
@@ -54,26 +55,18 @@ export class ServiceRequestsPageComponent {
   successMessage = '';
   createErrorMessage = '';
   deleteErrorMessage = '';
-  pageSize = 5;
+  pageSize = 10;
   isSubmitting = false;
   isDrawerOpen = false;
   deletingRequestId: number | null = null;
   editRequestId: number | null = null;
-
-  get currentPage(): number {
-    return this.currentPage$.value;
-  }
-
-  set currentPage(value: number) {
-    this.currentPage$.next(value);
-  }
 
   get searchTerm(): string {
     return this.searchTerm$.value;
   }
 
   set searchTerm(value: string) {
-    this.currentPage = 1;
+    this.currentPage$.next(1);
     this.searchTerm$.next(value);
   }
 
@@ -82,7 +75,7 @@ export class ServiceRequestsPageComponent {
   }
 
   set selectedStatus(value: string) {
-    this.currentPage = 1;
+    this.currentPage$.next(1);
     this.selectedStatus$.next(value);
   }
 
@@ -91,31 +84,51 @@ export class ServiceRequestsPageComponent {
   }
 
   set sortOption(value: ServiceRequestSortOption) {
-    this.currentPage = 1;
+    this.currentPage$.next(1);
     this.sortOption$.next(value);
   }
 
   viewState$ = combineLatest([
-    this.refreshTrigger$.pipe(
-      switchMap(() =>
-        this.serviceRequestService.getServiceRequests().pipe(
+    this.refreshTrigger$,
+    this.currentPage$,
+    this.selectedStatus$,
+    this.searchTerm$,
+    this.sortOption$,
+  ]).pipe(
+    switchMap(([, currentPage, selectedStatus, searchTerm, sortOption]) =>
+      this.serviceRequestService
+        .getServiceRequests({
+          status: selectedStatus,
+          page: currentPage,
+          pageSize: this.pageSize,
+        })
+        .pipe(
           map(
-            (data): ServiceRequestViewState => ({
-              isLoading: false,
-              errorMessage: '',
-              serviceRequests: data,
-              currentPage: this.currentPage,
-              pageSize: this.pageSize,
-              totalPages: 0,
-              totalFilteredCount: 0,
-              visibleCount: 0,
-            }),
+            (response: PagedServiceRequestsResponse): ServiceRequestViewState => {
+              const filteredServiceRequests = this.filterServiceRequests(
+                response.items,
+                searchTerm,
+                selectedStatus,
+              );
+              const sortedServiceRequests = this.sortServiceRequests(filteredServiceRequests, sortOption);
+
+              return {
+                isLoading: false,
+                errorMessage: '',
+                serviceRequests: sortedServiceRequests,
+                currentPage: response.page,
+                pageSize: response.pageSize,
+                totalPages: response.totalPages,
+                totalFilteredCount: searchTerm.trim() ? sortedServiceRequests.length : response.totalCount,
+                visibleCount: sortedServiceRequests.length,
+              };
+            },
           ),
           startWith({
             isLoading: true,
             errorMessage: '',
             serviceRequests: [],
-            currentPage: this.currentPage,
+            currentPage,
             pageSize: this.pageSize,
             totalPages: 0,
             totalFilteredCount: 0,
@@ -128,7 +141,7 @@ export class ServiceRequestsPageComponent {
               isLoading: false,
               errorMessage: 'Failed to load service requests.',
               serviceRequests: [],
-              currentPage: this.currentPage,
+              currentPage,
               pageSize: this.pageSize,
               totalPages: 0,
               totalFilteredCount: 0,
@@ -136,26 +149,7 @@ export class ServiceRequestsPageComponent {
             });
           }),
         ),
-      ),
     ),
-    this.currentPage$,
-    this.searchTerm$,
-    this.selectedStatus$,
-    this.sortOption$,
-  ]).pipe(
-    map(([viewState, currentPage, searchTerm, selectedStatus, sortOption]) => {
-      const filteredServiceRequests = this.filterServiceRequests(
-        viewState.serviceRequests,
-        searchTerm,
-        selectedStatus,
-      );
-      const sortedServiceRequests = this.sortServiceRequests(filteredServiceRequests, sortOption);
-
-      return {
-        ...viewState,
-        ...this.paginateServiceRequests(sortedServiceRequests, currentPage),
-      };
-    }),
   );
 
   get isEditMode(): boolean {
@@ -319,10 +313,26 @@ export class ServiceRequestsPageComponent {
   }
 
   resetFilters(): void {
-    this.currentPage = 1;
+    this.currentPage$.next(1);
     this.searchTerm = '';
     this.selectedStatus = '';
     this.sortOption = 'created-desc';
+  }
+
+  goToPreviousPage(): void {
+    if (this.currentPage$.value <= 1) {
+      return;
+    }
+
+    this.currentPage$.next(this.currentPage$.value - 1);
+  }
+
+  goToNextPage(totalPages: number): void {
+    if (this.currentPage$.value >= totalPages) {
+      return;
+    }
+
+    this.currentPage$.next(this.currentPage$.value + 1);
   }
 
   private resetFormState(): void {
@@ -350,30 +360,6 @@ export class ServiceRequestsPageComponent {
         )) &&
       (!normalizedSelectedStatus || request.status.toLowerCase() === normalizedSelectedStatus),
     );
-  }
-
-  private paginateServiceRequests(
-    serviceRequests: ServiceRequest[],
-    currentPage: number,
-  ): Pick<
-    ServiceRequestViewState,
-    'serviceRequests' | 'currentPage' | 'pageSize' | 'totalPages' | 'totalFilteredCount' | 'visibleCount'
-  > {
-    const totalPages =
-      serviceRequests.length === 0 ? 0 : Math.ceil(serviceRequests.length / this.pageSize);
-    const normalizedCurrentPage = totalPages === 0 ? 1 : Math.min(currentPage, totalPages);
-    const startIndex = (normalizedCurrentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    const visibleServiceRequests = serviceRequests.slice(startIndex, endIndex);
-
-    return {
-      serviceRequests: visibleServiceRequests,
-      currentPage: normalizedCurrentPage,
-      pageSize: this.pageSize,
-      totalPages,
-      totalFilteredCount: serviceRequests.length,
-      visibleCount: visibleServiceRequests.length,
-    };
   }
 
   private sortServiceRequests(

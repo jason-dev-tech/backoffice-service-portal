@@ -198,7 +198,7 @@
                     <button
                       type="button"
                       class="button button-secondary"
-                      (click)="currentPage = currentPage - 1"
+                      (click)="goToPreviousPage()"
                       [disabled]="vm.currentPage === 1"
                     >
                       Previous
@@ -206,7 +206,7 @@
                     <button
                       type="button"
                       class="button button-secondary"
-                      (click)="currentPage = currentPage + 1"
+                      (click)="goToNextPage(vm.totalPages)"
                       [disabled]="vm.currentPage === vm.totalPages"
                     >
                       Next
@@ -214,6 +214,7 @@
                   </div>
                 </div>
               }
+
             }
           </section>
         }

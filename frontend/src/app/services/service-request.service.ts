@@ -18,6 +18,14 @@ export type UpdateServiceRequestRequest = {
   status: string;
 };
 
+export type PagedServiceRequestsResponse = {
+  items: ServiceRequest[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -29,8 +37,21 @@ export class ServiceRequestService {
     return this.http.get<ServiceRequestDashboard>(`${this.apiUrl}/dashboard`);
   }
 
-  getServiceRequests(): Observable<ServiceRequest[]> {
-    return this.http.get<ServiceRequest[]>(this.apiUrl);
+  getServiceRequests(params?: {
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }): Observable<PagedServiceRequestsResponse> {
+    const queryParams = new URLSearchParams();
+
+    if (params?.status?.trim()) {
+      queryParams.set('status', params.status.trim());
+    }
+
+    queryParams.set('page', String(params?.page ?? 1));
+    queryParams.set('pageSize', String(params?.pageSize ?? 10));
+
+    return this.http.get<PagedServiceRequestsResponse>(`${this.apiUrl}?${queryParams.toString()}`);
   }
 
   createServiceRequest(payload: CreateServiceRequestRequest): Observable<ServiceRequest> {

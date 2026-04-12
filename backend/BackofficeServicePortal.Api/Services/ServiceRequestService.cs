@@ -79,6 +79,7 @@ public class ServiceRequestService : IServiceRequestService
 
     public async Task<PagedServiceRequestsResponseDto> GetAllAsync(
         string? status = null,
+        string? search = null,
         string? sort = null,
         int page = 1,
         int pageSize = 10)
@@ -94,6 +95,15 @@ public class ServiceRequestService : IServiceRequestService
         {
             var normalizedStatus = status.Trim();
             query = query.Where(sr => EF.Functions.ILike(sr.Status, normalizedStatus));
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var normalizedSearch = $"%{search.Trim()}%";
+            query = query.Where(sr =>
+                EF.Functions.ILike(sr.Title, normalizedSearch) ||
+                EF.Functions.ILike(sr.Description, normalizedSearch) ||
+                EF.Functions.ILike(sr.RequesterName, normalizedSearch));
         }
 
         var totalCount = await query.CountAsync();

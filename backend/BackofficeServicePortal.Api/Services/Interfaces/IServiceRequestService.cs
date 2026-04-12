@@ -7,6 +7,7 @@ public interface IServiceRequestService
     Task<ServiceRequestDashboardDto> GetDashboardAsync();
     Task<PagedServiceRequestsResponseDto> GetAllAsync(
         string? status = null,
+        string? search = null,
         string? sort = null,
         int page = 1,
         int pageSize = 10);

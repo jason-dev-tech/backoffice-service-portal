@@ -2,8 +2,8 @@
 
 A full-stack backoffice application for managing internal service
 requests, built with **ASP.NET Core Web API (.NET 8)** and **Angular**.
-The current implementation combines an authenticated SPA with a REST API
-and a dual-database design:
+The current implementation combines an authenticated SPA with a REST API,
+an operations dashboard, and a dual-database design:
 
 -   **PostgreSQL** for primary business data
 -   **MongoDB (Docker-based)** for audit logging
@@ -16,6 +16,7 @@ and a dual-database design:
 
 -   Login-based access to the backoffice UI using JWT authentication
 -   Protected Angular routes for authenticated users
+-   Authenticated dashboard with service request summary counts
 -   Service request management workflow covering create, list, update,
     and delete operations
 -   Request workspace with search, status filtering, sorting, and
@@ -36,6 +37,7 @@ and a dual-database design:
 -   **Frontend**: Angular standalone SPA
 -   **Backend**: ASP.NET Core Web API (.NET 8)
 -   **Application Flow**: Angular client → authenticated API endpoints
+-   **Client Views**: Login, dashboard, and service request workspace
 -   **Backend Pattern**: Controller → Service → DbContext
 -   **Primary Database**: PostgreSQL
 -   **Audit Logging**: MongoDB
@@ -90,6 +92,7 @@ The Angular application is configured to talk to the backend API
 through the environment files and currently provides:
 
 -   a login screen
+-   an authenticated dashboard with summary counts
 -   route protection via an auth guard
 -   automatic bearer token attachment through an HTTP interceptor
 -   a service request workspace for viewing and maintaining records
@@ -225,6 +228,8 @@ Open:
 
 -   The frontend and backend are separated cleanly, but operate as a
     single backoffice application
+-   The dashboard provides a lightweight reporting surface using the
+    existing service request domain
 -   DTOs prevent direct entity exposure and keep the API contract
     explicit
 -   Authentication is enforced in both routing and HTTP request flow
@@ -250,6 +255,7 @@ Open:
 ## 📈 Future Improvements
 
 -   Audit log views in the frontend
+-   Expanded dashboard reporting (trend views, charts, recent activity)
 -   Broader UI coverage for role-specific workflows
 -   Unit & integration testing
 -   Cloud deployment (Azure / AWS)

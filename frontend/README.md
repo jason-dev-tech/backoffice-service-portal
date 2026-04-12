@@ -11,6 +11,7 @@ with service requests through the backend API.
 ## 🚀 Features
 
 -   Login page backed by the API authentication endpoint
+-   Guarded dashboard page with service request summary counts
 -   Protected routing via an authentication guard
 -   HTTP interceptor that attaches bearer tokens and handles `401`
     responses
@@ -28,7 +29,10 @@ with service requests through the backend API.
 
 -   **Framework**: Angular
 -   **Application Type**: Single Page Application (SPA)
--   **Routing**: Login route and guarded service request route
+-   **Routing**: Login route, guarded dashboard route, and guarded
+    service request route
+-   **Views**: Login page, guarded dashboard page, guarded service
+    requests page
 -   **API Communication**: Angular `HttpClient`
 -   **Authentication Flow**: Login → token storage → guarded requests
 -   **Configuration**: Angular environment files
@@ -57,8 +61,10 @@ frontend/
 │   │   ├── interceptors/
 │   │   │   └── auth.interceptor.ts
 │   │   ├── models/
+│   │   │   ├── service-request-dashboard.model.ts
 │   │   │   └── service-request.model.ts
 │   │   ├── pages/
+│   │   │   ├── dashboard/
 │   │   │   ├── login/
 │   │   │   └── service-requests/
 │   │   ├── services/
@@ -109,6 +115,7 @@ This frontend depends on the backend API being available.
 Expected endpoints:
 
 -   `POST /api/Auth/login`
+-   `GET /api/ServiceRequests/dashboard`
 -   `GET /api/ServiceRequests`
 -   `POST /api/ServiceRequests`
 -   `PUT /api/ServiceRequests/{id}`
@@ -139,10 +146,12 @@ Open:
 ## 💡 Implementation Highlights
 
 -   Route-level access control is enforced before the service request
-    page loads
+    and dashboard pages load
 -   Authentication state is maintained with token expiry checks in local
     storage
 -   API requests are centralized in dedicated services
+-   The dashboard reuses the service request domain to provide a compact
+    reporting view
 -   The service request page combines list management and record
     maintenance in a single workspace
 
@@ -159,6 +168,7 @@ Open:
 ## 📈 Future Improvements
 
 -   Frontend access control that reflects API roles in the UI
+-   Expanded dashboard reporting (charts, trends, recent activity)
 -   Audit log views for individual service requests
 -   Additional test coverage
 

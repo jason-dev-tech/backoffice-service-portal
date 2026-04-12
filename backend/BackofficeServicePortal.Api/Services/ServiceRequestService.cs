@@ -77,8 +77,14 @@ public class ServiceRequestService : IServiceRequestService
         };
     }
 
-    public async Task<IEnumerable<ServiceRequestResponseDto>> GetAllAsync(string? status = null)
+    public async Task<PagedServiceRequestsResponseDto> GetAllAsync(
+        string? status = null,
+        int page = 1,
+        int pageSize = 10)
     {
+        var normalizedPage = Math.Max(page, 1);
+        var normalizedPageSize = Math.Max(pageSize, 1);
+
         var query = _dbContext.ServiceRequests
             .AsNoTracking()
             .AsQueryable();
@@ -89,11 +95,29 @@ public class ServiceRequestService : IServiceRequestService
             query = query.Where(sr => EF.Functions.ILike(sr.Status, normalizedStatus));
         }
 
-        var serviceRequests = await query
+        var totalCount = await query.CountAsync();
+        var totalPages = totalCount == 0
+            ? 0
+            : (int)Math.Ceiling((double)totalCount / normalizedPageSize);
+        var effectivePage = totalPages > 0 && normalizedPage > totalPages
+            ? totalPages
+            : normalizedPage;
+
+        var items = await query
             .OrderByDescending(sr => sr.CreatedAt)
+            .Skip((effectivePage - 1) * normalizedPageSize)
+            .Take(normalizedPageSize)
+            .Select(sr => sr.ToResponseDto())
             .ToListAsync();
 
-        return serviceRequests.Select(sr => sr.ToResponseDto());
+        return new PagedServiceRequestsResponseDto
+        {
+            Items = items,
+            Page = effectivePage,
+            PageSize = normalizedPageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages
+        };
     }
 
     public async Task<ServiceRequestResponseDto?> GetByIdAsync(int id)

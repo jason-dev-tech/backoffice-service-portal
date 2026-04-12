@@ -43,13 +43,17 @@ public class ServiceRequestsController : ControllerBase
     /// Gets all service requests ordered by creation date in descending order.
     /// </summary>
     /// <param name="status">Optional status filter.</param>
-    /// <returns>A list of service requests.</returns>
+    /// <param name="page">Page number.</param>
+    /// <param name="pageSize">Page size.</param>
+    /// <returns>A paginated list of service requests.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ServiceRequestResponseDto>>> GetServiceRequests(
-        [FromQuery] string? status)
+    public async Task<ActionResult<PagedServiceRequestsResponseDto>> GetServiceRequests(
+        [FromQuery] string? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var response = await _serviceRequestService.GetAllAsync(status);
+        var response = await _serviceRequestService.GetAllAsync(status, page, pageSize);
         return Ok(response);
     }
 

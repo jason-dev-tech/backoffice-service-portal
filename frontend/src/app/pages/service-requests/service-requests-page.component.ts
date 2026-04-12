@@ -11,12 +11,10 @@ import {
 import { ServiceRequest } from '../../models/service-request.model';
 
 type ServiceRequestSortOption =
-  | 'created-desc'
-  | 'created-asc'
-  | 'title-asc'
-  | 'title-desc'
-  | 'status-asc'
-  | 'status-desc';
+  | 'createdAt_desc'
+  | 'createdAt_asc'
+  | 'status_asc'
+  | 'status_desc';
 
 type ServiceRequestViewState = {
   isLoading: boolean;
@@ -43,7 +41,7 @@ export class ServiceRequestsPageComponent {
   private currentPage$ = new BehaviorSubject<number>(1);
   private searchTerm$ = new BehaviorSubject<string>('');
   private selectedStatus$ = new BehaviorSubject<string>(this.getInitialStatusFilter());
-  private sortOption$ = new BehaviorSubject<ServiceRequestSortOption>('created-desc');
+  private sortOption$ = new BehaviorSubject<ServiceRequestSortOption>('createdAt_desc');
 
   createForm = {
     title: '',
@@ -101,6 +99,7 @@ export class ServiceRequestsPageComponent {
           status: selectedStatus,
           page: currentPage,
           pageSize: this.pageSize,
+          sort: sortOption,
         })
         .pipe(
           map(
@@ -110,17 +109,16 @@ export class ServiceRequestsPageComponent {
                 searchTerm,
                 selectedStatus,
               );
-              const sortedServiceRequests = this.sortServiceRequests(filteredServiceRequests, sortOption);
 
               return {
                 isLoading: false,
                 errorMessage: '',
-                serviceRequests: sortedServiceRequests,
+                serviceRequests: filteredServiceRequests,
                 currentPage: response.page,
                 pageSize: response.pageSize,
                 totalPages: response.totalPages,
-                totalFilteredCount: searchTerm.trim() ? sortedServiceRequests.length : response.totalCount,
-                visibleCount: sortedServiceRequests.length,
+                totalFilteredCount: searchTerm.trim() ? filteredServiceRequests.length : response.totalCount,
+                visibleCount: filteredServiceRequests.length,
               };
             },
           ),
@@ -316,7 +314,7 @@ export class ServiceRequestsPageComponent {
     this.currentPage$.next(1);
     this.searchTerm = '';
     this.selectedStatus = '';
-    this.sortOption = 'created-desc';
+    this.sortOption = 'createdAt_desc';
   }
 
   goToPreviousPage(): void {
@@ -360,32 +358,6 @@ export class ServiceRequestsPageComponent {
         )) &&
       (!normalizedSelectedStatus || request.status.toLowerCase() === normalizedSelectedStatus),
     );
-  }
-
-  private sortServiceRequests(
-    serviceRequests: ServiceRequest[],
-    sortOption: ServiceRequestSortOption,
-  ): ServiceRequest[] {
-    const sortedServiceRequests = [...serviceRequests];
-
-    sortedServiceRequests.sort((left, right) => {
-      switch (sortOption) {
-        case 'created-asc':
-          return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
-        case 'created-desc':
-          return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
-        case 'title-asc':
-          return left.title.localeCompare(right.title);
-        case 'title-desc':
-          return right.title.localeCompare(left.title);
-        case 'status-asc':
-          return left.status.localeCompare(right.status);
-        case 'status-desc':
-          return right.status.localeCompare(left.status);
-      }
-    });
-
-    return sortedServiceRequests;
   }
 
   private getInitialStatusFilter(): string {

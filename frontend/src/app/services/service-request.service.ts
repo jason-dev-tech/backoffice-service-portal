@@ -41,11 +41,16 @@ export class ServiceRequestService {
     status?: string;
     page?: number;
     pageSize?: number;
+    sort?: string;
   }): Observable<PagedServiceRequestsResponse> {
     const queryParams = new URLSearchParams();
 
     if (params?.status?.trim()) {
       queryParams.set('status', params.status.trim());
+    }
+
+    if (params?.sort?.trim()) {
+      queryParams.set('sort', params.sort.trim());
     }
 
     queryParams.set('page', String(params?.page ?? 1));

@@ -79,6 +79,7 @@ public class ServiceRequestService : IServiceRequestService
 
     public async Task<PagedServiceRequestsResponseDto> GetAllAsync(
         string? status = null,
+        string? sort = null,
         int page = 1,
         int pageSize = 10)
     {
@@ -103,8 +104,9 @@ public class ServiceRequestService : IServiceRequestService
             ? totalPages
             : normalizedPage;
 
+        query = ApplySorting(query, sort);
+
         var items = await query
-            .OrderByDescending(sr => sr.CreatedAt)
             .Skip((effectivePage - 1) * normalizedPageSize)
             .Take(normalizedPageSize)
             .Select(sr => sr.ToResponseDto())
@@ -248,5 +250,18 @@ public class ServiceRequestService : IServiceRequestService
         }
 
         return Math.Round((double)count / total * 100, 1);
+    }
+
+    private static IQueryable<ServiceRequest> ApplySorting(
+        IQueryable<ServiceRequest> query,
+        string? sort)
+    {
+        return sort?.Trim() switch
+        {
+            "createdAt_asc" => query.OrderBy(sr => sr.CreatedAt),
+            "status_asc" => query.OrderBy(sr => sr.Status).ThenByDescending(sr => sr.CreatedAt),
+            "status_desc" => query.OrderByDescending(sr => sr.Status).ThenByDescending(sr => sr.CreatedAt),
+            _ => query.OrderByDescending(sr => sr.CreatedAt)
+        };
     }
 }

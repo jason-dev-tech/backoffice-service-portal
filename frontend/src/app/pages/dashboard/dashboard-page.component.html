@@ -1,0 +1,63 @@
+<div class="dashboard-page">
+  <div class="page-shell">
+    <header class="page-header">
+      <div class="page-header__content">
+        <p class="page-kicker">Operations</p>
+        <h1>Dashboard</h1>
+        <p class="page-subtitle">
+          Track the current service request workload from a single summary view.
+        </p>
+      </div>
+
+      <div class="page-header__actions">
+        <button type="button" class="button button-secondary" (click)="goToServiceRequests()">
+          Service Requests
+        </button>
+        <button type="button" class="button button-secondary" (click)="onLogout()">Logout</button>
+      </div>
+    </header>
+
+    @if (viewState$ | async; as vm) {
+      <section class="surface-card dashboard-card" aria-labelledby="dashboard-summary-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="dashboard-summary-heading">Service request summary</h2>
+            <p>Current totals grouped by workflow status.</p>
+          </div>
+        </div>
+
+        @if (vm.isLoading) {
+          <div class="dashboard-state">
+            <p>Loading dashboard summary...</p>
+          </div>
+        } @else if (vm.errorMessage) {
+          <div class="dashboard-state dashboard-state-error">
+            <p>{{ vm.errorMessage }}</p>
+          </div>
+        } @else {
+          <div class="kpi-grid">
+            <article class="kpi-card">
+              <p class="kpi-label">Total Requests</p>
+              <p class="kpi-value">{{ vm.summary.totalRequests }}</p>
+            </article>
+
+            <article class="kpi-card">
+              <p class="kpi-label">Open</p>
+              <p class="kpi-value">{{ vm.summary.openRequests }}</p>
+            </article>
+
+            <article class="kpi-card">
+              <p class="kpi-label">In Progress</p>
+              <p class="kpi-value">{{ vm.summary.inProgressRequests }}</p>
+            </article>
+
+            <article class="kpi-card">
+              <p class="kpi-label">Closed</p>
+              <p class="kpi-value">{{ vm.summary.closedRequests }}</p>
+            </article>
+          </div>
+        }
+      </section>
+    }
+  </div>
+</div>

@@ -325,6 +325,10 @@ export class ServiceRequestsPageComponent {
     void this.router.navigate(['/login']);
   }
 
+  goToDashboard(): void {
+    void this.router.navigate(['/dashboard']);
+  }
+
   resetFilters(): void {
     this.currentPage = 1;
     this.searchTerm = '';

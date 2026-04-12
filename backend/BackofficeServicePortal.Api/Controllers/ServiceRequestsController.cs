@@ -28,6 +28,18 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
+    /// Gets dashboard summary counts for service requests.
+    /// </summary>
+    /// <returns>Summary counts grouped for the dashboard.</returns>
+    [HttpGet("dashboard")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ServiceRequestDashboardDto>> GetDashboard()
+    {
+        var response = await _serviceRequestService.GetDashboardAsync();
+        return Ok(response);
+    }
+
+    /// <summary>
     /// Gets all service requests ordered by creation date in descending order.
     /// </summary>
     /// <returns>A list of service requests.</returns>

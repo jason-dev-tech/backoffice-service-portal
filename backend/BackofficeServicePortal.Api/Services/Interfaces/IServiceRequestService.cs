@@ -4,6 +4,7 @@ namespace BackofficeServicePortal.Api.Services.Interfaces;
 
 public interface IServiceRequestService
 {
+    Task<ServiceRequestDashboardDto> GetDashboardAsync();
     Task<IEnumerable<ServiceRequestResponseDto>> GetAllAsync();
     Task<ServiceRequestResponseDto?> GetByIdAsync(int id);
     Task<ServiceRequestResponseDto> CreateAsync(CreateServiceRequestDto dto);

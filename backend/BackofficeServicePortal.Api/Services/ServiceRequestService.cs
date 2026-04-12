@@ -8,6 +8,13 @@ namespace BackofficeServicePortal.Api.Services;
 
 public class ServiceRequestService : IServiceRequestService
 {
+    private sealed class ServiceRequestStatusCount
+    {
+        public string Status { get; set; } = string.Empty;
+
+        public int Count { get; set; }
+    }
+
     private readonly AppDbContext _dbContext;
     private readonly ServiceRequestAuditLogService _auditLogService;
 
@@ -17,6 +24,28 @@ public class ServiceRequestService : IServiceRequestService
     {
         _dbContext = dbContext;
         _auditLogService = auditLogService;
+    }
+
+    public async Task<ServiceRequestDashboardDto> GetDashboardAsync()
+    {
+        var statusCounts = await _dbContext.ServiceRequests
+            .GroupBy(sr => sr.Status)
+            .Select(group => new ServiceRequestStatusCount
+            {
+                Status = group.Key,
+                Count = group.Count()
+            })
+            .ToListAsync();
+
+        var totalRequests = statusCounts.Sum(item => item.Count);
+
+        return new ServiceRequestDashboardDto
+        {
+            TotalRequests = totalRequests,
+            OpenRequests = GetStatusCount(statusCounts, "Open"),
+            InProgressRequests = GetStatusCount(statusCounts, "In Progress"),
+            ClosedRequests = GetStatusCount(statusCounts, "Closed")
+        };
     }
 
     public async Task<IEnumerable<ServiceRequestResponseDto>> GetAllAsync()
@@ -131,5 +160,20 @@ public class ServiceRequestService : IServiceRequestService
         });
 
         return true;
+    }
+
+    private static int GetStatusCount(
+        IEnumerable<ServiceRequestStatusCount> statusCounts,
+        string status)
+    {
+        foreach (var item in statusCounts)
+        {
+            if (string.Equals(item.Status, status, StringComparison.OrdinalIgnoreCase))
+            {
+                return item.Count;
+            }
+        }
+
+        return 0;
     }
 }

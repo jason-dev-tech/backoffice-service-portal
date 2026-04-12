@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { ServiceRequestDashboard } from '../models/service-request-dashboard.model';
 import { ServiceRequest } from '../models/service-request.model';
 
 export type CreateServiceRequestRequest = {
@@ -23,6 +24,10 @@ export type UpdateServiceRequestRequest = {
 export class ServiceRequestService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiBaseUrl}/api/ServiceRequests`;
+
+  getDashboard(): Observable<ServiceRequestDashboard> {
+    return this.http.get<ServiceRequestDashboard>(`${this.apiUrl}/dashboard`);
+  }
 
   getServiceRequests(): Observable<ServiceRequest[]> {
     return this.http.get<ServiceRequest[]>(this.apiUrl);

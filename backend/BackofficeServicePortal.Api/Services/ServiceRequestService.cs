@@ -77,9 +77,19 @@ public class ServiceRequestService : IServiceRequestService
         };
     }
 
-    public async Task<IEnumerable<ServiceRequestResponseDto>> GetAllAsync()
+    public async Task<IEnumerable<ServiceRequestResponseDto>> GetAllAsync(string? status = null)
     {
-        var serviceRequests = await _dbContext.ServiceRequests
+        var query = _dbContext.ServiceRequests
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var normalizedStatus = status.Trim();
+            query = query.Where(sr => EF.Functions.ILike(sr.Status, normalizedStatus));
+        }
+
+        var serviceRequests = await query
             .OrderByDescending(sr => sr.CreatedAt)
             .ToListAsync();
 

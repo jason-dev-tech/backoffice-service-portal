@@ -42,12 +42,14 @@ public class ServiceRequestsController : ControllerBase
     /// <summary>
     /// Gets all service requests ordered by creation date in descending order.
     /// </summary>
+    /// <param name="status">Optional status filter.</param>
     /// <returns>A list of service requests.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ServiceRequestResponseDto>>> GetServiceRequests()
+    public async Task<ActionResult<IEnumerable<ServiceRequestResponseDto>>> GetServiceRequests(
+        [FromQuery] string? status)
     {
-        var response = await _serviceRequestService.GetAllAsync();
+        var response = await _serviceRequestService.GetAllAsync(status);
         return Ok(response);
     }
 

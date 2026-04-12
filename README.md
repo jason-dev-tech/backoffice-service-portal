@@ -32,6 +32,18 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
 -   Swagger available in development
 -   Fail-safe audit logging (MongoDB write failures do not block the API)
 
+### Role-Aware UI
+
+-   **Admin** users can create, edit, and delete service requests
+-   **Operator** users can create and edit service requests
+-   **Viewer** users have read-only access to dashboard and request data
+-   Frontend-driven access control is enforced from JWT role claims, so
+    the UI aligns with the authenticated user’s effective permissions
+-   Permission checks are centralized in `AuthService`, providing a
+    single role-aware permission layer for feature access decisions
+-   Read-only users are not shown irrelevant write actions, keeping the
+    interface clean and reducing accidental or unauthorized workflows
+
 ------------------------------------------------------------------------
 
 ## 🧱 Architecture
@@ -41,6 +53,8 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
 -   **Frontend**: Angular standalone SPA using RxJS and `AsyncPipe`
 -   **Application Flow**: Angular client → authenticated API endpoints
 -   **Client Views**: Login, dashboard, and service request workspace
+-   **Frontend Access Control**: Role-aware UI logic using JWT-derived
+    permission helpers
 -   **Backend Pattern**: Controller → Service → DbContext
 -   **API Contract**: DTO-based separation
 -   **Authentication**: JWT bearer tokens
@@ -274,6 +288,8 @@ Open:
 -   DTOs prevent direct entity exposure and keep the API contract
     explicit
 -   Authentication is enforced in both routing and HTTP request flow
+-   The frontend applies role-aware UI behavior through `AuthService`
+    permission helpers and conditional rendering
 -   Role-based access rules are applied where records are created,
     changed, and deleted
 -   PostgreSQL remains the source of truth while MongoDB is limited to

@@ -19,6 +19,11 @@ type LoginResponse = {
 export class AuthService {
   private static readonly TOKEN_STORAGE_KEY = 'auth.accessToken';
   private static readonly EXPIRES_AT_STORAGE_KEY = 'auth.expiresAtUtc';
+  private static readonly ROLE_CLAIM_KEYS = [
+    'role',
+    'roles',
+    'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
+  ] as const;
 
   private http = inject(HttpClient);
   private loginUrl = `${environment.apiBaseUrl}/api/Auth/login`;
@@ -88,5 +93,75 @@ export class AuthService {
   logout(): void {
     this.removeToken();
     localStorage.removeItem(AuthService.EXPIRES_AT_STORAGE_KEY);
+  }
+
+  getCurrentUserRole(): string | null {
+    const token = this.getToken();
+
+    if (!token) {
+      return null;
+    }
+
+    const payload = this.getTokenPayload(token);
+
+    if (!payload || typeof payload !== 'object') {
+      return null;
+    }
+
+    for (const claimKey of AuthService.ROLE_CLAIM_KEYS) {
+      const claimValue = payload[claimKey];
+
+      if (typeof claimValue === 'string' && claimValue.trim()) {
+        return claimValue.trim();
+      }
+
+      if (Array.isArray(claimValue)) {
+        const firstRole = claimValue.find(
+          (value): value is string => typeof value === 'string' && value.trim().length > 0,
+        );
+
+        if (firstRole) {
+          return firstRole.trim();
+        }
+      }
+    }
+
+    return null;
+  }
+
+  isAdmin(): boolean {
+    return this.getCurrentUserRole() === 'Admin';
+  }
+
+  canCreateServiceRequest(): boolean {
+    const role = this.getCurrentUserRole();
+    return role === 'Admin' || role === 'Operator';
+  }
+
+  canEditServiceRequest(): boolean {
+    const role = this.getCurrentUserRole();
+    return role === 'Admin' || role === 'Operator';
+  }
+
+  canDeleteServiceRequest(): boolean {
+    return this.getCurrentUserRole() === 'Admin';
+  }
+
+  private getTokenPayload(token: string): Record<string, unknown> | null {
+    const parts = token.split('.');
+
+    if (parts.length < 2) {
+      return null;
+    }
+
+    try {
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const paddedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+      const jsonPayload = atob(paddedBase64);
+
+      return JSON.parse(jsonPayload) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
   }
 }

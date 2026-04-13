@@ -23,9 +23,9 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     {
         await ResetDatabaseAsync();
         await SeedServiceRequestsAsync(
-            CreateRequest(1, "Printer issue", "Office printer stopped working.", "Jason", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(2, "VPN access", "Need VPN access for a contractor.", "Ava", "open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(3, "Laptop replacement", "Replace device for new starter.", "Mia", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Invoice processing delay", "Investigate delayed posting for supplier invoices.", "Daniel", "open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "POS settlement correction", "Correct the end-of-day POS settlement record.", "Farah", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
 
         var service = CreateService();
 
@@ -44,24 +44,24 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     {
         await ResetDatabaseAsync();
         await SeedServiceRequestsAsync(
-            CreateRequest(1, "Printer issue", "Office printer stopped working.", "Jason", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(2, "VPN access", "Need secure remote access.", "Ava", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(3, "New starter equipment", "Provision laptop and monitor.", "Mia", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Invoice processing delay", "Investigate delayed posting for supplier invoices.", "Daniel", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Customer record correction", "Update an incorrect billing contact on a customer account.", "Farah", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
 
         var service = CreateService();
 
-        var titleMatch = await service.GetAllAsync(new ServiceRequestQueryParams { Search = "printer" });
-        var descriptionMatch = await service.GetAllAsync(new ServiceRequestQueryParams { Search = "remote" });
-        var requesterMatch = await service.GetAllAsync(new ServiceRequestQueryParams { Search = "mia" });
+        var titleMatch = await service.GetAllAsync(new ServiceRequestQueryParams { Search = "sales" });
+        var descriptionMatch = await service.GetAllAsync(new ServiceRequestQueryParams { Search = "supplier" });
+        var requesterMatch = await service.GetAllAsync(new ServiceRequestQueryParams { Search = "farah" });
 
         Assert.Single(titleMatch.Items);
-        Assert.Equal("Printer issue", titleMatch.Items[0].Title);
+        Assert.Equal("Sales report discrepancy", titleMatch.Items[0].Title);
 
         Assert.Single(descriptionMatch.Items);
-        Assert.Equal("VPN access", descriptionMatch.Items[0].Title);
+        Assert.Equal("Invoice processing delay", descriptionMatch.Items[0].Title);
 
         Assert.Single(requesterMatch.Items);
-        Assert.Equal("New starter equipment", requesterMatch.Items[0].Title);
+        Assert.Equal("Customer record correction", requesterMatch.Items[0].Title);
     }
 
     [Fact]
@@ -69,9 +69,9 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     {
         await ResetDatabaseAsync();
         await SeedServiceRequestsAsync(
-            CreateRequest(1, "Bravo request", "Second item", "Jason", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(2, "Alpha request", "First by title", "Ava", "Open", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(3, "Charlie request", "Third item", "Mia", "Closed", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)));
+            CreateRequest(1, "Month-end close review", "Validate the finance close checklist for the branch.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Accounts payable exception", "Review a blocked supplier payment batch.", "Daniel", "Open", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Sales settlement variance", "Investigate a mismatch in POS settlement totals.", "Farah", "Closed", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)));
 
         var service = CreateService();
 
@@ -87,9 +87,9 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     {
         await ResetDatabaseAsync();
         await SeedServiceRequestsAsync(
-            CreateRequest(1, "Request 1", "Description 1", "User 1", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(2, "Request 2", "Description 2", "User 2", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(3, "Request 3", "Description 3", "User 3", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Invoice processing delay", "Investigate delayed posting for supplier invoices.", "Daniel", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Customer record correction", "Update an incorrect billing contact on a customer account.", "Farah", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
 
         var service = CreateService();
 
@@ -113,9 +113,9 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     {
         await ResetDatabaseAsync();
         await SeedServiceRequestsAsync(
-            CreateRequest(1, "Request 1", "Description 1", "User 1", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(2, "Request 2", "Description 2", "User 2", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(3, "Request 3", "Description 3", "User 3", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Invoice processing delay", "Investigate delayed posting for supplier invoices.", "Daniel", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Customer record correction", "Update an incorrect billing contact on a customer account.", "Farah", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
 
         var service = CreateService();
 
@@ -136,10 +136,10 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     {
         await ResetDatabaseAsync();
         await SeedServiceRequestsAsync(
-            CreateRequest(1, "Request 1", "Description 1", "User 1", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(2, "Request 2", "Description 2", "User 2", "In Progress", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(3, "Request 3", "Description 3", "User 3", "Closed", new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(4, "Request 4", "Description 4", "User 4", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)));
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Invoice exception review", "Review supplier invoices blocked by validation rules.", "Sofia", "In Progress", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Quarterly revenue adjustment", "Apply a correction to the quarter-end revenue summary.", "Elena", "Closed", new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(4, "Invoice processing delay", "Investigate delayed posting for supplier invoices.", "Daniel", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)));
 
         var service = CreateService();
 
@@ -160,11 +160,11 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     {
         await ResetDatabaseAsync();
         await SeedServiceRequestsAsync(
-            CreateRequest(1, "Request 1", "Description 1", "User 1", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(2, "Request 2", "Description 2", "User 2", "open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(3, "Request 3", "Description 3", "User 3", "OPEN", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(4, "Request 4", "Description 4", "User 4", "In Progress", new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc)),
-            CreateRequest(5, "Request 5", "Description 5", "User 5", "closed", new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc)));
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Supplier payment variance", "Investigate an unexpected difference in supplier payment totals.", "Amina", "open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Inventory update request", "Apply a product quantity adjustment before month-end reporting.", "Marcus", "OPEN", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(4, "Invoice exception review", "Review supplier invoices blocked by validation rules.", "Sofia", "In Progress", new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(5, "Quarterly revenue adjustment", "Apply a correction to the quarter-end revenue summary.", "Elena", "closed", new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc)));
 
         var service = CreateService();
 
@@ -193,15 +193,15 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
 
         var result = await service.CreateAsync(new CreateServiceRequestDto
         {
-            Title = "New laptop request",
-            Description = "Provision a laptop for the new starter.",
+            Title = "Sales report discrepancy",
+            Description = "Review a mismatch in the monthly sales report totals.",
             RequesterName = "Jordan",
             Status = "In Progress"
         });
 
         Assert.True(result.Id > 0);
-        Assert.Equal("New laptop request", result.Title);
-        Assert.Equal("Provision a laptop for the new starter.", result.Description);
+        Assert.Equal("Sales report discrepancy", result.Title);
+        Assert.Equal("Review a mismatch in the monthly sales report totals.", result.Description);
         Assert.Equal("Jordan", result.RequesterName);
         Assert.Equal("In Progress", result.Status);
         Assert.NotEqual(default, result.CreatedAt);
@@ -210,8 +210,8 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
         await using var dbContext = CreateDbContext();
         var persistedRequest = await dbContext.ServiceRequests.SingleAsync(sr => sr.Id == result.Id);
 
-        Assert.Equal("New laptop request", persistedRequest.Title);
-        Assert.Equal("Provision a laptop for the new starter.", persistedRequest.Description);
+        Assert.Equal("Sales report discrepancy", persistedRequest.Title);
+        Assert.Equal("Review a mismatch in the monthly sales report totals.", persistedRequest.Description);
         Assert.Equal("Jordan", persistedRequest.RequesterName);
         Assert.Equal("In Progress", persistedRequest.Status);
         Assert.Equal(result.CreatedAt, persistedRequest.CreatedAt);
@@ -227,8 +227,8 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
 
         var result = await service.CreateAsync(new CreateServiceRequestDto
         {
-            Title = "Access card request",
-            Description = "Create a building access card for a visitor.",
+            Title = "Invoice processing delay",
+            Description = "Investigate delayed approval for a supplier invoice batch.",
             RequesterName = "Taylor",
             Status = "   "
         });
@@ -245,6 +245,68 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
         Assert.Equal("Open", persistedRequest.Status);
         Assert.Null(persistedRequest.UpdatedAt);
         Assert.InRange(persistedRequest.CreatedAt, beforeCreate, afterCreate);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_UpdatesEditableFieldsSetsUpdatedAtAndPersistsChanges()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestsAsync(
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)));
+
+        var service = CreateService();
+        var beforeUpdate = DateTime.UtcNow;
+
+        var result = await service.UpdateAsync(1, new UpdateServiceRequestDto
+        {
+            Title = "Sales report discrepancy resolved",
+            Description = "The reporting totals were reconciled and confirmed.",
+            RequesterName = "Jordan",
+            Status = "Closed"
+        });
+
+        var afterUpdate = DateTime.UtcNow;
+
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Id);
+        Assert.Equal("Sales report discrepancy resolved", result.Title);
+        Assert.Equal("The reporting totals were reconciled and confirmed.", result.Description);
+        Assert.Equal("Jordan", result.RequesterName);
+        Assert.Equal("Closed", result.Status);
+        Assert.Equal(new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc), result.CreatedAt);
+        Assert.NotNull(result.UpdatedAt);
+        Assert.InRange(result.UpdatedAt!.Value, beforeUpdate, afterUpdate);
+
+        await using var dbContext = CreateDbContext();
+        var persistedRequest = await dbContext.ServiceRequests.SingleAsync(sr => sr.Id == 1);
+
+        Assert.Equal("Sales report discrepancy resolved", persistedRequest.Title);
+        Assert.Equal("The reporting totals were reconciled and confirmed.", persistedRequest.Description);
+        Assert.Equal("Jordan", persistedRequest.RequesterName);
+        Assert.Equal("Closed", persistedRequest.Status);
+        Assert.Equal(new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc), persistedRequest.CreatedAt);
+        Assert.NotNull(persistedRequest.UpdatedAt);
+        Assert.InRange(persistedRequest.UpdatedAt!.Value, beforeUpdate, afterUpdate);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ReturnsNullWhenServiceRequestDoesNotExist()
+    {
+        await ResetDatabaseAsync();
+        var service = CreateService();
+
+        var result = await service.UpdateAsync(999, new UpdateServiceRequestDto
+        {
+            Title = "Revenue reconciliation update",
+            Description = "Apply an updated note for the reconciliation review.",
+            RequesterName = "Jordan",
+            Status = "Closed"
+        });
+
+        Assert.Null(result);
+
+        await using var dbContext = CreateDbContext();
+        Assert.Empty(await dbContext.ServiceRequests.ToListAsync());
     }
 
     private ServiceRequestService CreateService()

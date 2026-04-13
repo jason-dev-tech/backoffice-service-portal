@@ -1,0 +1,24 @@
+services:
+  postgres-e2e:
+    image: postgres:16.4-alpine
+    container_name: backoffice-postgres-e2e
+    environment:
+      POSTGRES_DB: backoffice_service_portal_e2e
+      POSTGRES_USER: backoffice_e2e
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "55432:5432"
+    volumes:
+      - postgres-e2e-data:/var/lib/postgresql/data
+
+  mongo-e2e:
+    image: mongo:7.0.14
+    container_name: backoffice-mongo-e2e
+    ports:
+      - "37017:27017"
+    volumes:
+      - mongo-e2e-data:/data/db
+
+volumes:
+  postgres-e2e-data:
+  mongo-e2e-data:

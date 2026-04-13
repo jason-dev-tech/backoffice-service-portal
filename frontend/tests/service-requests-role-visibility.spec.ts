@@ -76,3 +76,40 @@ test('admin sees create and delete service request actions', async ({ page }) =>
   await expect(page.getByRole('button', { name: 'Create Service Request' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Delete' }).first()).toBeVisible();
 });
+
+test('operator can create a service request', async ({ page }) => {
+  const operatorUsername = process.env.E2E_OPERATOR_USERNAME;
+  const operatorPassword = process.env.E2E_OPERATOR_PASSWORD;
+
+  if (!operatorUsername || !operatorPassword) {
+    throw new Error('E2E_OPERATOR_USERNAME and E2E_OPERATOR_PASSWORD must be set.');
+  }
+
+  const uniqueTitle = `Operator E2E ${Date.now()}`;
+
+  await page.goto('http://localhost:4200/login');
+
+  await page.getByLabel('Username').fill(operatorUsername);
+  await page.getByLabel('Password').fill(operatorPassword);
+
+  await Promise.all([
+    page.waitForURL(/\/dashboard$/),
+    page.getByRole('button', { name: 'Sign in' }).click(),
+  ]);
+
+  await page.getByRole('link', { name: 'Service Requests' }).click();
+  await page.waitForURL(/\/service-requests$/);
+
+  await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
+  await page.getByRole('button', { name: 'Create Service Request' }).click();
+
+  await expect(page.getByRole('dialog', { name: 'Create Service Request' })).toBeVisible();
+  await page.getByLabel('Title').fill(uniqueTitle);
+  await page.getByLabel('Description').fill('Created by the operator E2E test.');
+  await page.getByLabel('Requester name').fill('Operator Test User');
+
+  await page.getByRole('dialog', { name: 'Create Service Request' }).getByRole('button', { name: 'Create Service Request' }).click();
+
+  await expect(page.getByRole('dialog', { name: 'Create Service Request' })).toBeHidden();
+  await expect(page.getByRole('cell', { name: uniqueTitle })).toBeVisible();
+});

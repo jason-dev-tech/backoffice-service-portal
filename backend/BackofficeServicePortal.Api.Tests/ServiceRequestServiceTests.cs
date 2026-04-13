@@ -342,6 +342,38 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
         Assert.Empty(await dbContext.ServiceRequests.ToListAsync());
     }
 
+    [Fact]
+    public async Task GetByIdAsync_ReturnsDtoForExistingRecord()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestsAsync(
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)));
+
+        var service = CreateService();
+
+        var result = await service.GetByIdAsync(1);
+
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Id);
+        Assert.Equal("Sales report discrepancy", result.Title);
+        Assert.Equal("Review a mismatch in the weekly sales report totals.", result.Description);
+        Assert.Equal("Bianca", result.RequesterName);
+        Assert.Equal("Open", result.Status);
+        Assert.Equal(new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc), result.CreatedAt);
+        Assert.Null(result.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ReturnsNullWhenRecordDoesNotExist()
+    {
+        await ResetDatabaseAsync();
+        var service = CreateService();
+
+        var result = await service.GetByIdAsync(999);
+
+        Assert.Null(result);
+    }
+
     private ServiceRequestService CreateService()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

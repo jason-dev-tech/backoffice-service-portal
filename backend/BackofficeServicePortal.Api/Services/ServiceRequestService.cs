@@ -28,32 +28,31 @@ public class ServiceRequestService : IServiceRequestService
 
     public async Task<ServiceRequestDashboardDto> GetDashboardAsync()
     {
-        var serviceRequests = await _dbContext.ServiceRequests
+        var statusCounts = await _dbContext.ServiceRequests
             .AsNoTracking()
-            .OrderBy(sr => sr.CreatedAt)
-            .ToListAsync();
-
-        var statusCounts = serviceRequests
-            .GroupBy(sr => sr.Status)
+            .GroupBy(sr => sr.Status.ToLower())
             .Select(group => new ServiceRequestStatusCount
             {
                 Status = group.Key,
                 Count = group.Count()
             })
-            .ToList();
+            .ToListAsync();
 
         var totalRequests = statusCounts.Sum(item => item.Count);
         var openRequests = GetStatusCount(statusCounts, "Open");
         var inProgressRequests = GetStatusCount(statusCounts, "In Progress");
         var closedRequests = GetStatusCount(statusCounts, "Closed");
-        var oldestOpenRequestCreatedAt = serviceRequests
-            .Where(sr => string.Equals(sr.Status, "Open", StringComparison.OrdinalIgnoreCase))
+        var oldestOpenRequestCreatedAt = await _dbContext.ServiceRequests
+            .AsNoTracking()
+            .Where(sr => EF.Functions.ILike(sr.Status, "Open"))
+            .OrderBy(sr => sr.CreatedAt)
             .Select(sr => (DateTime?)sr.CreatedAt)
-            .FirstOrDefault();
-        var mostRecentRequestCreatedAt = serviceRequests
+            .FirstOrDefaultAsync();
+        var mostRecentRequestCreatedAt = await _dbContext.ServiceRequests
+            .AsNoTracking()
             .OrderByDescending(sr => sr.CreatedAt)
             .Select(sr => (DateTime?)sr.CreatedAt)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
         return new ServiceRequestDashboardDto
         {
@@ -69,7 +68,7 @@ public class ServiceRequestService : IServiceRequestService
                 .OrderByDescending(item => item.Count)
                 .Select(item => new ServiceRequestStatusDistributionDto
                 {
-                    Status = item.Status,
+                    Status = NormalizeDashboardStatus(item.Status),
                     Count = item.Count,
                     Percentage = GetPercentage(item.Count, totalRequests)
                 })
@@ -256,6 +255,17 @@ public class ServiceRequestService : IServiceRequestService
         }
 
         return Math.Round((double)count / total * 100, 1);
+    }
+
+    private static string NormalizeDashboardStatus(string status)
+    {
+        return status switch
+        {
+            "open" => "Open",
+            "in progress" => "In Progress",
+            "closed" => "Closed",
+            _ => status
+        };
     }
 
     private static IQueryable<ServiceRequest> ApplySorting(

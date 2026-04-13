@@ -132,6 +132,50 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     }
 
     [Fact]
+    public async Task GetAllAsync_FallsBackToDefaultSortingWhenSortIsInvalid()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestsAsync(
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Invoice processing delay", "Investigate delayed posting for supplier invoices.", "Daniel", "Open", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Customer record correction", "Update an incorrect billing contact on a customer account.", "Farah", "Closed", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)));
+
+        var service = CreateService();
+
+        var result = await service.GetAllAsync(new ServiceRequestQueryParams
+        {
+            Sort = "not_a_valid_sort"
+        });
+
+        Assert.Equal(new[] { 2, 3, 1 }, result.Items.Select(item => item.Id));
+    }
+
+    [Fact]
+    public async Task GetAllAsync_NormalizesInvalidPageAndPageSizeInputs()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestsAsync(
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Invoice processing delay", "Investigate delayed posting for supplier invoices.", "Daniel", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Customer record correction", "Update an incorrect billing contact on a customer account.", "Farah", "Closed", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)));
+
+        var service = CreateService();
+
+        var result = await service.GetAllAsync(new ServiceRequestQueryParams
+        {
+            Page = 0,
+            PageSize = 0
+        });
+
+        Assert.Equal(1, result.Page);
+        Assert.Equal(1, result.PageSize);
+        Assert.Equal(3, result.TotalCount);
+        Assert.Equal(3, result.TotalPages);
+        Assert.Single(result.Items);
+        Assert.Equal(3, result.Items[0].Id);
+    }
+
+    [Fact]
     public async Task GetDashboardAsync_ReturnsSummaryCountsAndDates()
     {
         await ResetDatabaseAsync();

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BackofficeServicePortal.Api.Data;
 using BackofficeServicePortal.Api.DTOs.Auth;
@@ -49,6 +50,46 @@ public sealed class AuthControllerIntegrationTests : IClassFixture<AuthControlle
         });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetServiceRequests_WithoutAuthorizationHeader_ReturnsUnauthorized()
+    {
+        using var client = _fixture.CreateClient();
+
+        var response = await client.GetAsync("/api/ServiceRequests");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetServiceRequests_WithValidJwtFromLogin_ReturnsOk()
+    {
+        using var client = _fixture.CreateClient();
+        var accessToken = await LoginAndGetAccessTokenAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        var response = await client.GetAsync("/api/ServiceRequests");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    private async Task<string> LoginAndGetAccessTokenAsync(HttpClient client)
+    {
+        var response = await client.PostAsJsonAsync("/api/Auth/login", new LoginRequestDto
+        {
+            Username = _fixture.Factory.BootstrapAdminUsername,
+            Password = _fixture.Factory.BootstrapAdminPassword
+        });
+
+        response.EnsureSuccessStatusCode();
+
+        var payload = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+
+        Assert.NotNull(payload);
+        Assert.False(string.IsNullOrWhiteSpace(payload.AccessToken));
+
+        return payload.AccessToken;
     }
 }
 
@@ -102,6 +143,9 @@ public sealed class AuthControllerIntegrationTestsFixture : IAsyncLifetime
     private void ApplyTestEnvironmentOverrides()
     {
         SetEnvironmentVariable("ConnectionStrings__DefaultConnection", _container.GetConnectionString());
+        SetEnvironmentVariable("MongoDbSettings__ConnectionString", "mongodb://127.0.0.1:1");
+        SetEnvironmentVariable("MongoDbSettings__DatabaseName", "backoffice_service_portal_api_tests");
+        SetEnvironmentVariable("MongoDbSettings__AuditLogsCollectionName", "service_request_audit_logs");
         SetEnvironmentVariable("Jwt__Key", Factory.JwtKey);
         SetEnvironmentVariable("Jwt__Issuer", Factory.JwtIssuer);
         SetEnvironmentVariable("Jwt__Audience", Factory.JwtAudience);

@@ -105,6 +105,14 @@ optional query parameters:
 Filtering, search, sorting, and pagination are executed in PostgreSQL
 through the API query pipeline rather than in-memory in the client.
 
+### Dashboard Aggregation
+
+`GET /api/ServiceRequests/dashboard` uses database-level aggregation for
+summary counts and reporting fields rather than loading all service
+requests into memory. Dashboard status grouping is normalized
+case-insensitively so values such as `Open`, `open`, and `OPEN` are
+treated consistently, while the API contract remains stable.
+
 ### Endpoints
 
 ### Authentication

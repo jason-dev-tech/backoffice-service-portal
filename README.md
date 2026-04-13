@@ -85,6 +85,8 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
 -   ASP.NET Core Authentication / Authorization
 -   PostgreSQL
 -   MongoDB
+-   xUnit
+-   Testcontainers for PostgreSQL and MongoDB
 -   Docker
 
 ------------------------------------------------------------------------
@@ -142,10 +144,45 @@ operations require `Admin` or `Operator`, and delete requires `Admin`.
 ``` text
 backend/
   BackofficeServicePortal.Api/
+  BackofficeServicePortal.Api.Tests/
 
 frontend/
   src/
 ```
+
+------------------------------------------------------------------------
+
+## 🧪 Backend Testing
+
+Backend automated testing is implemented with **xUnit** and is focused
+on integration-heavy coverage around the current service request and
+authentication flows.
+
+### Current Coverage
+
+-   `ServiceRequestService` integration tests covering query filtering,
+    search, sorting, pagination, dashboard aggregation, and
+    create/update/delete behavior against PostgreSQL
+-   `ServiceRequestAuditLogService` integration tests covering MongoDB
+    audit log persistence
+-   Auth/login API integration tests covering successful login, invalid
+    credentials, unauthenticated access rejection, and authenticated
+    access with a JWT obtained from the login endpoint
+-   Authorization integration tests for protected service request
+    endpoints through authenticated and unauthenticated API flows
+-   Validation integration tests for service request create/update
+    endpoints, including the centralized validation response shape
+
+### Testing Approach
+
+-   Service-level integration tests run against ephemeral
+    **PostgreSQL Testcontainers** and **MongoDB Testcontainers**
+-   API integration tests use **`WebApplicationFactory`** to boot the
+    ASP.NET Core application in a test host and exercise real HTTP
+    endpoints
+-   Authentication-focused API tests log in through
+    `POST /api/Auth/login` and use the returned bearer token for
+    protected endpoint coverage
 
 ------------------------------------------------------------------------
 
@@ -322,7 +359,6 @@ Open:
 -   Audit log views in the frontend
 -   Expanded dashboard reporting (trend views, charts, recent activity)
 -   Broader UI coverage for role-specific workflows
--   Unit & integration testing
 -   Cloud deployment (Azure / AWS)
 -   CI/CD pipeline
 

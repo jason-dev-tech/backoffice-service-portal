@@ -156,6 +156,8 @@ using (var scope = app.Services.CreateScope())
     var passwordHasherService = scope.ServiceProvider.GetRequiredService<IPasswordHasherService>();
     var bootstrapAdminOptions = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<BootstrapAdminOptions>>();
 
+    await dbContext.Database.MigrateAsync();
+
     async Task BootstrapUserAsync(BootstrapAdminOptions options, string roleName)
     {
         if (string.IsNullOrWhiteSpace(options.Username) ||

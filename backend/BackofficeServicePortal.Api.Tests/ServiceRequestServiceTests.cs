@@ -292,6 +292,30 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     }
 
     [Fact]
+    public async Task CreateAsync_DefaultsNullStatusToOpen()
+    {
+        await ResetDatabaseAsync();
+        var service = CreateService();
+
+        var result = await service.CreateAsync(new CreateServiceRequestDto
+        {
+            Title = "Sales report discrepancy",
+            Description = "Review a mismatch in the monthly sales report totals.",
+            RequesterName = "Jordan",
+            Status = null
+        });
+
+        Assert.Equal("Open", result.Status);
+        Assert.Null(result.UpdatedAt);
+
+        await using var dbContext = CreateDbContext();
+        var persistedRequest = await dbContext.ServiceRequests.SingleAsync(sr => sr.Id == result.Id);
+
+        Assert.Equal("Open", persistedRequest.Status);
+        Assert.Null(persistedRequest.UpdatedAt);
+    }
+
+    [Fact]
     public async Task UpdateAsync_UpdatesEditableFieldsSetsUpdatedAtAndPersistsChanges()
     {
         await ResetDatabaseAsync();
@@ -351,6 +375,39 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
 
         await using var dbContext = CreateDbContext();
         Assert.Empty(await dbContext.ServiceRequests.ToListAsync());
+    }
+
+    [Fact]
+    public async Task UpdateAsync_PersistsWhitespaceStatusAsIsAndSetsUpdatedAt()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestsAsync(
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)));
+
+        var service = CreateService();
+        var beforeUpdate = DateTime.UtcNow;
+
+        var result = await service.UpdateAsync(1, new UpdateServiceRequestDto
+        {
+            Title = "Sales report discrepancy",
+            Description = "Review a mismatch in the weekly sales report totals.",
+            RequesterName = "Bianca",
+            Status = "   "
+        });
+
+        var afterUpdate = DateTime.UtcNow;
+
+        Assert.NotNull(result);
+        Assert.Equal("   ", result.Status);
+        Assert.NotNull(result.UpdatedAt);
+        Assert.InRange(result.UpdatedAt!.Value, beforeUpdate, afterUpdate);
+
+        await using var dbContext = CreateDbContext();
+        var persistedRequest = await dbContext.ServiceRequests.SingleAsync(sr => sr.Id == 1);
+
+        Assert.Equal("   ", persistedRequest.Status);
+        Assert.NotNull(persistedRequest.UpdatedAt);
+        Assert.InRange(persistedRequest.UpdatedAt!.Value, beforeUpdate, afterUpdate);
     }
 
     [Fact]

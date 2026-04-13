@@ -113,3 +113,50 @@ test('operator can create a service request', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Create Service Request' })).toBeHidden();
   await expect(page.getByRole('cell', { name: uniqueTitle })).toBeVisible();
 });
+
+test('admin can delete a service request', async ({ page }) => {
+  const adminUsername = process.env.E2E_ADMIN_USERNAME;
+  const adminPassword = process.env.E2E_ADMIN_PASSWORD;
+
+  if (!adminUsername || !adminPassword) {
+    throw new Error('E2E_ADMIN_USERNAME and E2E_ADMIN_PASSWORD must be set.');
+  }
+
+  const uniqueTitle = `Admin E2E ${Date.now()}`;
+
+  await page.goto('http://localhost:4200/login');
+
+  await page.getByLabel('Username').fill(adminUsername);
+  await page.getByLabel('Password').fill(adminPassword);
+
+  await Promise.all([
+    page.waitForURL(/\/dashboard$/),
+    page.getByRole('button', { name: 'Sign in' }).click(),
+  ]);
+
+  await page.getByRole('link', { name: 'Service Requests' }).click();
+  await page.waitForURL(/\/service-requests$/);
+
+  await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
+  await page.getByRole('button', { name: 'Create Service Request' }).click();
+
+  await expect(page.getByRole('dialog', { name: 'Create Service Request' })).toBeVisible();
+  await page.getByLabel('Title').fill(uniqueTitle);
+  await page.getByLabel('Description').fill('Created by the admin delete E2E test.');
+  await page.getByLabel('Requester name').fill('Admin Test User');
+
+  await page
+    .getByRole('dialog', { name: 'Create Service Request' })
+    .getByRole('button', { name: 'Create Service Request' })
+    .click();
+
+  await expect(page.getByRole('dialog', { name: 'Create Service Request' })).toBeHidden();
+
+  const createdRow = page.getByRole('row', { name: new RegExp(uniqueTitle) });
+  await expect(createdRow).toBeVisible();
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await createdRow.getByRole('button', { name: 'Delete' }).click();
+
+  await expect(page.getByRole('cell', { name: uniqueTitle })).toHaveCount(0);
+});

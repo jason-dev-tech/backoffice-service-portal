@@ -22,7 +22,8 @@ consumes the ASP.NET Core Web API.
 -   Protected routing via an authentication guard
 -   HTTP interceptor that attaches bearer tokens and handles `401`
     responses
--   Environment-based API configuration
+-   Environment-based API configuration with runtime API base URL
+    override support
 -   Separation between pages, services, guards, interceptors, and models
 -   API error handling for login and service request operations
 
@@ -40,7 +41,8 @@ consumes the ASP.NET Core Web API.
 -   **API Communication**: Angular `HttpClient` through a dedicated
     service layer
 -   **Authentication Flow**: Login → token storage → guarded requests
--   **Configuration**: Angular environment files
+-   **Configuration**: Angular environment files plus runtime config
+    script
 -   **Backend Integration**: ASP.NET Core Web API
 
 ------------------------------------------------------------------------
@@ -89,27 +91,36 @@ frontend/
 
 ## 🌐 Environment Configuration
 
-The frontend uses Angular environment files for backend API
-configuration.
+The frontend uses Angular environment files with a runtime override for
+backend API configuration.
 
 File:
 
     src/environments/environment.ts
+
+Runtime script:
+
+    public/runtime-config.js
 
 Example:
 
 ``` ts
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://localhost:<your-backend-port>'
+  apiBaseUrl: 'https://localhost:7179'
 };
 ```
 
 ### Important
 
--   Replace `<your-backend-port>` with the actual backend port
--   The frontend will not work unless this value matches the running
-    backend
+-   `environment.ts` / `environment.prod.ts` keep
+    `https://localhost:7179` as the fallback API URL
+-   `src/index.html` loads `/runtime-config.js` before Angular bootstraps
+-   Playwright startup generates `public/runtime-config.js` so the
+    frontend can target the isolated E2E backend without modifying
+    tracked source files
+-   `public/runtime-config.js` is a generated artifact and should not be
+    committed
 
 ------------------------------------------------------------------------
 
@@ -155,6 +166,31 @@ Open:
 
     http://localhost:<your-frontend-port>
 
+For Playwright E2E, the frontend is started by Playwright and the
+runtime config file is generated before `ng serve` starts.
+
+------------------------------------------------------------------------
+
+## 🎭 Playwright E2E
+
+Current Playwright E2E coverage includes:
+
+-   role-based visibility
+-   operator create service request flow
+-   admin delete service request flow
+
+E2E runs are intended to use isolated PostgreSQL and MongoDB services
+from the repository root `docker-compose.e2e.yml`. The backend applies
+EF Core migrations on startup for fresh E2E databases and supports
+bootstrap users for `Admin`, `Operator`, and `Viewer`.
+
+Minimal setup:
+
+``` bash
+export POSTGRES_PASSWORD=<your-e2e-postgres-password>
+docker compose -f ../docker-compose.e2e.yml up -d
+```
+
 ------------------------------------------------------------------------
 
 ## 💡 Implementation Highlights
@@ -176,14 +212,14 @@ Open:
 ## 📌 Notes
 
 -   Requires backend to run on HTTPS for proper integration
--   Uses environment-based configuration (no hardcoded URLs)
+-   Uses environment fallback plus runtime-config override for API base
+    URL selection
 -   Depends on the backend for authentication and request data
 
 ------------------------------------------------------------------------
 
 ## 📈 Future Improvements
 
--   Frontend access control that reflects API roles in the UI
 -   Expanded dashboard reporting (charts, trends, recent activity)
 -   Audit log views for individual service requests
 -   Additional test coverage

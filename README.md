@@ -186,10 +186,25 @@ authentication flows.
 
 ------------------------------------------------------------------------
 
+## 🎭 Playwright E2E Coverage
+
+Playwright coverage currently focuses on authenticated, role-aware
+frontend workflows:
+
+-   role-based visibility for service request actions
+-   operator create service request flow
+-   admin delete service request flow
+
+E2E runs are designed to target an isolated database environment rather
+than local development data.
+
+------------------------------------------------------------------------
+
 ## 🌐 Frontend Configuration
 
 The Angular application is configured to talk to the backend API
-through the environment files and currently provides:
+through the environment files and a runtime override, and currently
+provides:
 
 -   a login screen
 -   an authenticated dashboard with summary counts
@@ -197,18 +212,28 @@ through the environment files and currently provides:
 -   automatic bearer token attachment through an HTTP interceptor
 -   a service request workspace for viewing and maintaining records
 
-File:
+Files:
 
     frontend/src/environments/environment.ts
+    frontend/public/runtime-config.js
 
-Example:
+Default fallback:
 
 ``` ts
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://localhost:<your-backend-port>'
+  apiBaseUrl: 'https://localhost:7179'
 };
 ```
+
+Runtime override:
+
+-   the frontend reads `window.BACKOFFICE_API_BASE_URL` from
+    `/runtime-config.js`
+-   Playwright startup generates `frontend/public/runtime-config.js`
+    before `ng serve`
+-   `frontend/public/runtime-config.js` is a generated artifact and
+    should not be committed
 
 ------------------------------------------------------------------------
 
@@ -228,42 +253,28 @@ Example:
 
 ------------------------------------------------------------------------
 
-## 🐳 Docker (MongoDB Setup)
+## 🐳 Isolated E2E Databases
 
-MongoDB is used only for audit logging and is expected to run locally
-via Docker.
+Playwright E2E uses `docker-compose.e2e.yml` for isolated database
+services only:
 
-### First-time setup
+-   PostgreSQL on `localhost:55432`
+-   MongoDB on `localhost:37017`
 
-``` bash
-docker run -d -p <host-port>:<container-port> --name mongodb mongo
-```
+The backend now applies EF Core migrations on startup, and startup
+bootstrap supports `Admin`, `Operator`, and `Viewer` users for isolated
+environments.
 
-### Start container
-
-``` bash
-docker start mongodb
-```
-
-### Stop container
+Minimal local E2E setup:
 
 ``` bash
-docker stop mongodb
+export POSTGRES_PASSWORD=<your-e2e-postgres-password>
+docker compose -f docker-compose.e2e.yml up -d
 ```
 
-### Check status
-
-``` bash
-docker ps
-```
-
-### Notes
-
--   `docker run` should be used **only once** (initial container
-    creation)
--   Use `docker start` and `docker stop` for subsequent runs
--   Re-running `docker run` with the same container name will cause a
-    conflict
+The API should then be started with E2E-specific connection strings,
+MongoDB settings, JWT key, and bootstrap credentials for the three test
+roles.
 
 ------------------------------------------------------------------------
 
@@ -317,6 +328,10 @@ dotnet dev-certs https --trust
 cd frontend
 ng serve
 ```
+
+For Playwright E2E, the frontend is started by Playwright and receives
+its API target through the generated runtime config file rather than by
+editing tracked source files.
 
 Open:
 

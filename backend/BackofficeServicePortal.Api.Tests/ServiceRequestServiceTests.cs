@@ -130,6 +130,60 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
         Assert.Equal(1, result.Items[0].Id);
     }
 
+    [Fact]
+    public async Task GetDashboardAsync_ReturnsSummaryCountsAndDates()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestsAsync(
+            CreateRequest(1, "Request 1", "Description 1", "User 1", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Request 2", "Description 2", "User 2", "In Progress", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Request 3", "Description 3", "User 3", "Closed", new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(4, "Request 4", "Description 4", "User 4", "Open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)));
+
+        var service = CreateService();
+
+        var result = await service.GetDashboardAsync();
+
+        Assert.Equal(4, result.TotalRequests);
+        Assert.Equal(2, result.OpenRequests);
+        Assert.Equal(1, result.InProgressRequests);
+        Assert.Equal(1, result.ClosedRequests);
+        Assert.Equal(new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc), result.OldestOpenRequestCreatedAt);
+        Assert.Equal(new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc), result.MostRecentRequestCreatedAt);
+        Assert.Equal(50.0, result.OpenSharePercentage);
+        Assert.Equal(25.0, result.ClosedSharePercentage);
+    }
+
+    [Fact]
+    public async Task GetDashboardAsync_NormalizesStatusCasingInCountsAndDistribution()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestsAsync(
+            CreateRequest(1, "Request 1", "Description 1", "User 1", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(2, "Request 2", "Description 2", "User 2", "open", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(3, "Request 3", "Description 3", "User 3", "OPEN", new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(4, "Request 4", "Description 4", "User 4", "In Progress", new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc)),
+            CreateRequest(5, "Request 5", "Description 5", "User 5", "closed", new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc)));
+
+        var service = CreateService();
+
+        var result = await service.GetDashboardAsync();
+
+        Assert.Equal(5, result.TotalRequests);
+        Assert.Equal(3, result.OpenRequests);
+        Assert.Equal(1, result.InProgressRequests);
+        Assert.Equal(1, result.ClosedRequests);
+
+        var distribution = result.StatusDistribution.ToDictionary(item => item.Status);
+
+        Assert.Equal(3, distribution["Open"].Count);
+        Assert.Equal(60.0, distribution["Open"].Percentage);
+        Assert.Equal(1, distribution["In Progress"].Count);
+        Assert.Equal(20.0, distribution["In Progress"].Percentage);
+        Assert.Equal(1, distribution["Closed"].Count);
+        Assert.Equal(20.0, distribution["Closed"].Percentage);
+    }
+
     private ServiceRequestService CreateService()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

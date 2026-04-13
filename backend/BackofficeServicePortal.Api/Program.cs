@@ -156,43 +156,60 @@ using (var scope = app.Services.CreateScope())
     var passwordHasherService = scope.ServiceProvider.GetRequiredService<IPasswordHasherService>();
     var bootstrapAdminOptions = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<BootstrapAdminOptions>>();
 
-    if (!await dbContext.Users.AnyAsync())
+    async Task BootstrapUserAsync(BootstrapAdminOptions options, string roleName)
     {
-        var options = bootstrapAdminOptions.Value;
-
-        if (!string.IsNullOrWhiteSpace(options.Username) &&
-            !string.IsNullOrWhiteSpace(options.Email) &&
-            !string.IsNullOrWhiteSpace(options.FullName) &&
-            !string.IsNullOrWhiteSpace(options.Password))
+        if (string.IsNullOrWhiteSpace(options.Username) ||
+            string.IsNullOrWhiteSpace(options.Email) ||
+            string.IsNullOrWhiteSpace(options.FullName) ||
+            string.IsNullOrWhiteSpace(options.Password))
         {
-            var adminRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
-
-            if (adminRole is not null)
-            {
-                var user = new User
-                {
-                    Username = options.Username,
-                    Email = options.Email,
-                    FullName = options.FullName,
-                    IsActive = true,
-                    CreatedAtUtc = DateTime.UtcNow
-                };
-
-                user.PasswordHash = passwordHasherService.HashPassword(user, options.Password);
-
-                dbContext.Users.Add(user);
-                await dbContext.SaveChangesAsync();
-
-                dbContext.UserRoles.Add(new UserRole
-                {
-                    UserId = user.Id,
-                    RoleId = adminRole.Id
-                });
-
-                await dbContext.SaveChangesAsync();
-            }
+            return;
         }
+
+        var existingUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Username == options.Username);
+
+        if (existingUser is not null)
+        {
+            return;
+        }
+
+        var role = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+
+        if (role is null)
+        {
+            return;
+        }
+
+        var user = new User
+        {
+            Username = options.Username,
+            Email = options.Email,
+            FullName = options.FullName,
+            IsActive = true,
+            CreatedAtUtc = DateTime.UtcNow
+        };
+
+        user.PasswordHash = passwordHasherService.HashPassword(user, options.Password);
+
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        dbContext.UserRoles.Add(new UserRole
+        {
+            UserId = user.Id,
+            RoleId = role.Id
+        });
+
+        await dbContext.SaveChangesAsync();
     }
+
+    await BootstrapUserAsync(bootstrapAdminOptions.Value, ApplicationRoles.Admin);
+    await BootstrapUserAsync(
+        app.Configuration.GetSection("BootstrapOperator").Get<BootstrapAdminOptions>() ?? new BootstrapAdminOptions(),
+        ApplicationRoles.Operator);
+    await BootstrapUserAsync(
+        app.Configuration.GetSection("BootstrapViewer").Get<BootstrapAdminOptions>() ?? new BootstrapAdminOptions(),
+        ApplicationRoles.Viewer);
 }
 
 app.Run();

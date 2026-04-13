@@ -3,6 +3,7 @@ using BackofficeServicePortal.Api.DTOs.ServiceRequests;
 using BackofficeServicePortal.Api.Models;
 using BackofficeServicePortal.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -184,6 +185,68 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
         Assert.Equal(20.0, distribution["Closed"].Percentage);
     }
 
+    [Fact]
+    public async Task CreateAsync_ReturnsCreatedDtoAndPersistsRecord()
+    {
+        await ResetDatabaseAsync();
+        var service = CreateService();
+
+        var result = await service.CreateAsync(new CreateServiceRequestDto
+        {
+            Title = "New laptop request",
+            Description = "Provision a laptop for the new starter.",
+            RequesterName = "Jordan",
+            Status = "In Progress"
+        });
+
+        Assert.True(result.Id > 0);
+        Assert.Equal("New laptop request", result.Title);
+        Assert.Equal("Provision a laptop for the new starter.", result.Description);
+        Assert.Equal("Jordan", result.RequesterName);
+        Assert.Equal("In Progress", result.Status);
+        Assert.NotEqual(default, result.CreatedAt);
+        Assert.Null(result.UpdatedAt);
+
+        await using var dbContext = CreateDbContext();
+        var persistedRequest = await dbContext.ServiceRequests.SingleAsync(sr => sr.Id == result.Id);
+
+        Assert.Equal("New laptop request", persistedRequest.Title);
+        Assert.Equal("Provision a laptop for the new starter.", persistedRequest.Description);
+        Assert.Equal("Jordan", persistedRequest.RequesterName);
+        Assert.Equal("In Progress", persistedRequest.Status);
+        Assert.Equal(result.CreatedAt, persistedRequest.CreatedAt);
+        Assert.Null(persistedRequest.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task CreateAsync_DefaultsBlankStatusToOpenAndLeavesUpdatedAtNull()
+    {
+        await ResetDatabaseAsync();
+        var service = CreateService();
+        var beforeCreate = DateTime.UtcNow;
+
+        var result = await service.CreateAsync(new CreateServiceRequestDto
+        {
+            Title = "Access card request",
+            Description = "Create a building access card for a visitor.",
+            RequesterName = "Taylor",
+            Status = "   "
+        });
+
+        var afterCreate = DateTime.UtcNow;
+
+        Assert.Equal("Open", result.Status);
+        Assert.Null(result.UpdatedAt);
+        Assert.InRange(result.CreatedAt, beforeCreate, afterCreate);
+
+        await using var dbContext = CreateDbContext();
+        var persistedRequest = await dbContext.ServiceRequests.SingleAsync(sr => sr.Id == result.Id);
+
+        Assert.Equal("Open", persistedRequest.Status);
+        Assert.Null(persistedRequest.UpdatedAt);
+        Assert.InRange(persistedRequest.CreatedAt, beforeCreate, afterCreate);
+    }
+
     private ServiceRequestService CreateService()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -191,8 +254,15 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
             .Options;
 
         var dbContext = new AppDbContext(options);
+        var auditLogService = new ServiceRequestAuditLogService(
+            Options.Create(new MongoDbSettings
+            {
+                ConnectionString = "mongodb://127.0.0.1:1",
+                DatabaseName = "backoffice_service_portal_tests",
+                AuditLogsCollectionName = "service_request_audit_logs"
+            }));
 
-        return new ServiceRequestService(dbContext, null!);
+        return new ServiceRequestService(dbContext, auditLogService);
     }
 
     private async Task ResetDatabaseAsync()

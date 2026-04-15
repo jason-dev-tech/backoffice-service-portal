@@ -29,7 +29,8 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
 -   Centralized validation responses for invalid API payloads
 -   PostgreSQL (EF Core) for core application data
 -   MongoDB for audit logging of create, update, and delete events
--   Swagger available in development
+-   Swagger UI available in local development and in the containerized
+    backend runtime
 -   Fail-safe audit logging (MongoDB write failures do not block the API)
 
 ### Role-Aware UI
@@ -133,6 +134,13 @@ treated consistently, while the API contract remains stable.
 ### Audit Logs
 
 -   `GET /api/ServiceRequests/{id}/audit-logs`
+
+### Health
+
+-   `GET /health` - overall service health
+-   `GET /health/live` - liveness check (process is running)
+-   `GET /health/ready` - readiness check (includes database
+    connectivity)
 
 All service request endpoints require authentication. Create and update
 operations require `Admin` or `Operator`, and delete requires `Admin`.
@@ -323,6 +331,42 @@ roles.
 ## ▶️ Run the Application
 
 ### Backend
+
+Local Docker runtime uses the repository root `docker-compose.yml` with
+PostgreSQL and the backend API container.
+
+Required environment variables are defined in `.env.example`:
+
+``` bash
+POSTGRES_DB=backoffice_service_portal
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=change_me
+JWT_KEY=replace_with_a_secure_random_secret
+```
+
+Minimal local setup:
+
+``` bash
+cp .env.example .env
+docker compose up --build
+```
+
+The backend is then available at:
+
+-   `http://localhost:8080`
+-   Swagger UI: `http://localhost:8080/swagger`
+-   Health: `http://localhost:8080/health`
+-   Liveness: `http://localhost:8080/health/live`
+-   Readiness: `http://localhost:8080/health/ready`
+
+On container startup, the API applies EF Core migrations
+automatically. Startup migration includes retry logic, which helps the
+API start reliably when PostgreSQL is not immediately ready.
+
+JWT signing configuration for the containerized backend is provided
+through environment variables, including `JWT_KEY`.
+
+For local non-container development:
 
 ``` bash
 cd backend/BackofficeServicePortal.Api

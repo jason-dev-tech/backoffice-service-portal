@@ -15,7 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register services
 builder.Services.AddControllers();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database", tags: ["ready"]);
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -151,6 +152,14 @@ app.UseAuthorization();
 // Map controller endpoints
 app.MapControllers();
 app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new()
+{
+    Predicate = registration => registration.Tags.Count == 0
+});
+app.MapHealthChecks("/health/ready", new()
+{
+    Predicate = registration => registration.Tags.Contains("ready")
+});
 
 using (var scope = app.Services.CreateScope())
 {

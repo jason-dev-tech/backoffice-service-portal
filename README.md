@@ -351,6 +351,10 @@ cp .env.example .env
 docker compose up --build
 ```
 
+The Compose setup health-checks PostgreSQL with `pg_isready`, and the
+backend waits for PostgreSQL to become healthy before startup through
+`depends_on` with `condition: service_healthy`.
+
 The backend is then available at:
 
 -   `http://localhost:8080`
@@ -362,6 +366,11 @@ The backend is then available at:
 On container startup, the API applies EF Core migrations
 automatically. Startup migration includes retry logic, which helps the
 API start reliably when PostgreSQL is not immediately ready.
+
+The backend container health check uses the existing
+`/health/ready` endpoint. The runtime image includes `wget`
+specifically so the container health check can call that readiness
+endpoint.
 
 JWT signing configuration for the containerized backend is provided
 through environment variables, including `JWT_KEY`.

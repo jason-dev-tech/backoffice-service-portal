@@ -137,7 +137,7 @@ public sealed class AuthControllerIntegrationTestsFixture : IAsyncLifetime
 
         await using var dbContext = new AppDbContext(options);
         await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.MigrateAsync();
     }
 
     private void ApplyTestEnvironmentOverrides()

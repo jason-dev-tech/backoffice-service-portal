@@ -24,13 +24,13 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore BackofficeServicePortal.sln
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build BackofficeServicePortal.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --configuration Release --no-build
+        run: dotnet test BackofficeServicePortal.sln --configuration Release --no-build
 
   frontend:
     name: Frontend Build and Test

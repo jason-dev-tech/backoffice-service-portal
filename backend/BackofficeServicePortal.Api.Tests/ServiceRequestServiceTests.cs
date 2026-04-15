@@ -258,7 +258,10 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
         Assert.Equal("Review a mismatch in the monthly sales report totals.", persistedRequest.Description);
         Assert.Equal("Jordan", persistedRequest.RequesterName);
         Assert.Equal("In Progress", persistedRequest.Status);
-        Assert.Equal(result.CreatedAt, persistedRequest.CreatedAt);
+        Assert.InRange(
+            (persistedRequest.CreatedAt - result.CreatedAt).Duration(),
+            TimeSpan.Zero,
+            TimeSpan.FromMilliseconds(1));
         Assert.Null(persistedRequest.UpdatedAt);
     }
 

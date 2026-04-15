@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register services
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -134,13 +135,13 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure middleware pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("FrontendPolicy");
 
@@ -149,14 +150,50 @@ app.UseAuthorization();
 
 // Map controller endpoints
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var passwordHasherService = scope.ServiceProvider.GetRequiredService<IPasswordHasherService>();
     var bootstrapAdminOptions = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<BootstrapAdminOptions>>();
 
-    await dbContext.Database.MigrateAsync();
+    var migrationTimeout = TimeSpan.FromSeconds(30);
+    var retryDelay = TimeSpan.FromSeconds(2);
+    var startedAtUtc = DateTime.UtcNow;
+    var attempt = 0;
+
+    while (true)
+    {
+        attempt++;
+
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+            break;
+        }
+        catch (Exception ex) when (DateTime.UtcNow - startedAtUtc < migrationTimeout)
+        {
+            logger.LogWarning(
+                ex,
+                "Database migration attempt {Attempt} failed. Retrying in {DelaySeconds} seconds.",
+                attempt,
+                retryDelay.TotalSeconds);
+
+            await Task.Delay(retryDelay);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Database migration failed after {AttemptCount} attempts over {TimeoutSeconds} seconds.",
+                attempt,
+                migrationTimeout.TotalSeconds);
+
+            throw;
+        }
+    }
 
     async Task BootstrapUserAsync(BootstrapAdminOptions options, string roleName)
     {

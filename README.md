@@ -186,6 +186,20 @@ authentication flows.
 
 ------------------------------------------------------------------------
 
+## CI Pipeline
+
+This project uses GitHub Actions to:
+
+-   Build and test the backend (.NET 8)
+-   Run backend automated tests in CI
+-   Build and test the frontend (Angular + Vitest)
+-   Enforce frontend build constraints through Angular budgets
+
+The pipeline helps validate changes consistently across environments and
+improves delivery reliability.
+
+------------------------------------------------------------------------
+
 ## 🎭 Playwright E2E Coverage
 
 Playwright coverage currently focuses on authenticated, role-aware

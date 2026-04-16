@@ -449,3 +449,20 @@ Open:
 ## 👤 Author
 
 Jason
+
+## Usage and Licensing Clarification
+
+This project is developed as a **portfolio and demonstration project** to showcase software engineering practices, including full-stack development, system design, and deployment.
+
+- It is **not used for any commercial purpose**
+- It is **not deployed for real customers or business operations**
+- It is **not provided as a service to third parties**
+
+All components, including MongoDB used for audit logging, are used **strictly as internal implementation details** within the application.
+
+This project is intended solely for:
+- Learning
+- Demonstration
+- Technical evaluation
+
+No commercial usage is intended or planned.

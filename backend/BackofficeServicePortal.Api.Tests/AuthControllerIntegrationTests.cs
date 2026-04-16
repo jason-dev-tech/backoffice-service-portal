@@ -143,9 +143,6 @@ public sealed class AuthControllerIntegrationTestsFixture : IAsyncLifetime
     private void ApplyTestEnvironmentOverrides()
     {
         SetEnvironmentVariable("ConnectionStrings__DefaultConnection", _container.GetConnectionString());
-        SetEnvironmentVariable("MongoDbSettings__ConnectionString", "mongodb://127.0.0.1:1");
-        SetEnvironmentVariable("MongoDbSettings__DatabaseName", "backoffice_service_portal_api_tests");
-        SetEnvironmentVariable("MongoDbSettings__AuditLogsCollectionName", "service_request_audit_logs");
         SetEnvironmentVariable("Jwt__Key", Factory.JwtKey);
         SetEnvironmentVariable("Jwt__Issuer", Factory.JwtIssuer);
         SetEnvironmentVariable("Jwt__Audience", Factory.JwtAudience);

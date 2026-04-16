@@ -11,14 +11,5 @@ services:
     volumes:
       - postgres-e2e-data:/var/lib/postgresql/data
 
-  mongo-e2e:
-    image: mongo:7.0.14
-    container_name: backoffice-mongo-e2e
-    ports:
-      - "37017:27017"
-    volumes:
-      - mongo-e2e-data:/data/db
-
 volumes:
   postgres-e2e-data:
-  mongo-e2e-data:

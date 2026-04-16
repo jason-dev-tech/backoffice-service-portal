@@ -38,9 +38,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 
-builder.Services.Configure<MongoDbSettings>(
-    builder.Configuration.GetSection("MongoDbSettings"));
-
 builder.Services.Configure<BootstrapAdminOptions>(
     builder.Configuration.GetSection("BootstrapAdmin"));
 

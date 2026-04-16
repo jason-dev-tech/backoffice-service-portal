@@ -1,25 +1,25 @@
+using BackofficeServicePortal.Api.Data;
 using BackofficeServicePortal.Api.Models;
 using BackofficeServicePortal.Api.Services;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
-using Testcontainers.MongoDb;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace BackofficeServicePortal.Api.Tests;
 
-public sealed class ServiceRequestAuditLogServiceTests : IClassFixture<MongoDbFixture>
+public sealed class ServiceRequestAuditLogServiceTests : IClassFixture<PostgreSqlFixture>
 {
-    private readonly MongoDbFixture _fixture;
+    private readonly PostgreSqlFixture _fixture;
 
-    public ServiceRequestAuditLogServiceTests(MongoDbFixture fixture)
+    public ServiceRequestAuditLogServiceTests(PostgreSqlFixture fixture)
     {
         _fixture = fixture;
     }
 
     [Fact]
-    public async Task LogAsync_PersistsAuditLogDocument()
+    public async Task LogAsync_PersistsAuditLogEntry()
     {
-        await ResetCollectionAsync();
+        await ResetDatabaseAsync();
+        await SeedServiceRequestAsync(101);
         var service = CreateService();
         var expectedTimestamp = new DateTime(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc);
 
@@ -31,12 +31,10 @@ public sealed class ServiceRequestAuditLogServiceTests : IClassFixture<MongoDbFi
             Details = "Service request 'Sales report discrepancy' was created."
         });
 
-        var persistedLogs = await GetCollection()
-            .Find(FilterDefinition<ServiceRequestAuditLog>.Empty)
-            .ToListAsync();
+        await using var dbContext = CreateDbContext();
+        var persistedLog = await dbContext.ServiceRequestAuditLogEntries.SingleAsync();
 
-        var persistedLog = Assert.Single(persistedLogs);
-        Assert.False(string.IsNullOrWhiteSpace(persistedLog.Id));
+        Assert.True(persistedLog.Id > 0);
         Assert.Equal(101, persistedLog.ServiceRequestId);
         Assert.Equal("Created", persistedLog.Action);
         Assert.Equal(expectedTimestamp, persistedLog.TimestampUtc);
@@ -44,9 +42,10 @@ public sealed class ServiceRequestAuditLogServiceTests : IClassFixture<MongoDbFi
     }
 
     [Fact]
-    public async Task LogAsync_PersistsMultipleAuditLogDocuments()
+    public async Task LogAsync_PersistsMultipleAuditLogEntries()
     {
-        await ResetCollectionAsync();
+        await ResetDatabaseAsync();
+        await SeedServiceRequestAsync(201);
         var service = CreateService();
 
         await service.LogAsync(new ServiceRequestAuditLog
@@ -65,9 +64,9 @@ public sealed class ServiceRequestAuditLogServiceTests : IClassFixture<MongoDbFi
             Details = "Service request 'Invoice processing delay' was updated."
         });
 
-        var persistedLogs = await GetCollection()
-            .Find(FilterDefinition<ServiceRequestAuditLog>.Empty)
-            .SortBy(log => log.TimestampUtc)
+        await using var dbContext = CreateDbContext();
+        var persistedLogs = await dbContext.ServiceRequestAuditLogEntries
+            .OrderBy(log => log.TimestampUtc)
             .ToListAsync();
 
         Assert.Equal(2, persistedLogs.Count);
@@ -83,48 +82,64 @@ public sealed class ServiceRequestAuditLogServiceTests : IClassFixture<MongoDbFi
         Assert.Equal("Service request 'Invoice processing delay' was updated.", persistedLogs[1].Details);
     }
 
+    [Fact]
+    public async Task GetLogsByServiceRequestIdAsync_ReturnsMappedAuditLogs()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestAsync(301);
+        var service = CreateService();
+
+        await service.LogAsync(new ServiceRequestAuditLog
+        {
+            ServiceRequestId = 301,
+            Action = "Created",
+            TimestampUtc = new DateTime(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc),
+            Details = "Created details"
+        });
+
+        var logs = await service.GetLogsByServiceRequestIdAsync(301);
+
+        var persistedLog = Assert.Single(logs);
+        Assert.False(string.IsNullOrWhiteSpace(persistedLog.Id));
+        Assert.Equal(301, persistedLog.ServiceRequestId);
+        Assert.Equal("Created", persistedLog.Action);
+        Assert.Equal(new DateTime(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc), persistedLog.TimestampUtc);
+        Assert.Equal("Created details", persistedLog.Details);
+    }
+
     private ServiceRequestAuditLogService CreateService()
     {
-        return new ServiceRequestAuditLogService(
-            Options.Create(new MongoDbSettings
-            {
-                ConnectionString = _fixture.ConnectionString,
-                DatabaseName = MongoDbFixture.DatabaseName,
-                AuditLogsCollectionName = MongoDbFixture.CollectionName
-            }));
+        return new ServiceRequestAuditLogService(CreateDbContext());
     }
 
-    private async Task ResetCollectionAsync()
+    private async Task ResetDatabaseAsync()
     {
-        await GetCollection().DeleteManyAsync(FilterDefinition<ServiceRequestAuditLog>.Empty);
+        await using var dbContext = CreateDbContext();
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
     }
 
-    private IMongoCollection<ServiceRequestAuditLog> GetCollection()
+    private async Task SeedServiceRequestAsync(int id)
     {
-        var client = new MongoClient(_fixture.ConnectionString);
-        var database = client.GetDatabase(MongoDbFixture.DatabaseName);
-        return database.GetCollection<ServiceRequestAuditLog>(MongoDbFixture.CollectionName);
-    }
-}
-
-public sealed class MongoDbFixture : IAsyncLifetime
-{
-    public const string DatabaseName = "backoffice_service_portal_audit_tests";
-    public const string CollectionName = "service_request_audit_logs";
-
-    private readonly MongoDbContainer _container = new MongoDbBuilder()
-        .WithImage("mongo:7.0")
-        .Build();
-
-    public string ConnectionString => _container.GetConnectionString();
-
-    public async Task InitializeAsync()
-    {
-        await _container.StartAsync();
+        await using var dbContext = CreateDbContext();
+        dbContext.ServiceRequests.Add(new ServiceRequest
+        {
+            Id = id,
+            Title = $"Title {id}",
+            Description = $"Description {id}",
+            RequesterName = "Audit Test",
+            Status = "Open",
+            CreatedAt = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)
+        });
+        await dbContext.SaveChangesAsync();
     }
 
-    public async Task DisposeAsync()
+    private AppDbContext CreateDbContext()
     {
-        await _container.DisposeAsync();
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(_fixture.ConnectionString)
+            .Options;
+
+        return new AppDbContext(options);
     }
 }

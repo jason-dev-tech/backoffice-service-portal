@@ -485,13 +485,7 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
             .Options;
 
         var dbContext = new AppDbContext(options);
-        var auditLogService = new ServiceRequestAuditLogService(
-            Options.Create(new MongoDbSettings
-            {
-                ConnectionString = "mongodb://127.0.0.1:1",
-                DatabaseName = "backoffice_service_portal_tests",
-                AuditLogsCollectionName = "service_request_audit_logs"
-            }));
+        var auditLogService = new ServiceRequestAuditLogService(new AppDbContext(options));
 
         return new ServiceRequestService(dbContext, auditLogService);
     }

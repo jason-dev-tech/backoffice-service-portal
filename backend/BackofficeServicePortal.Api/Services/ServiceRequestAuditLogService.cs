@@ -1,51 +1,65 @@
+using BackofficeServicePortal.Api.Data;
 using BackofficeServicePortal.Api.Models;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackofficeServicePortal.Api.Services;
 
 /// <summary>
-/// Service responsible for writing audit logs to MongoDB.
+/// Service responsible for writing audit logs to PostgreSQL.
 /// </summary>
 public class ServiceRequestAuditLogService
 {
-    private readonly IMongoCollection<ServiceRequestAuditLog> _collection;
+    private readonly AppDbContext _dbContext;
 
-    public ServiceRequestAuditLogService(IOptions<MongoDbSettings> settings)
+    public ServiceRequestAuditLogService(AppDbContext dbContext)
     {
-        var mongoSettings = settings.Value;
-
-        var client = new MongoClient(mongoSettings.ConnectionString);
-        var database = client.GetDatabase(mongoSettings.DatabaseName);
-
-        _collection = database.GetCollection<ServiceRequestAuditLog>(
-            mongoSettings.AuditLogsCollectionName);
+        _dbContext = dbContext;
     }
 
     /// <summary>
-    /// Inserts a new audit log entry into MongoDB.
+    /// Inserts a new audit log entry into PostgreSQL.
     /// </summary>
     public async Task LogAsync(ServiceRequestAuditLog log)
     {
         try
         {
-            await _collection.InsertOneAsync(log);
+            _dbContext.ServiceRequestAuditLogEntries.Add(new ServiceRequestAuditLogEntry
+            {
+                ServiceRequestId = log.ServiceRequestId,
+                Action = log.Action,
+                TimestampUtc = log.TimestampUtc,
+                Details = log.Details
+            });
+
+            await _dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
             // Log error but do not break the main flow
-            Console.WriteLine($"[MongoDB] Failed to write audit log: {ex.Message}");
+            Console.WriteLine($"[PostgreSQL] Failed to write audit log: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Gets audit log entries for a specific service request.
+     /// Gets audit log entries for a specific service request.
     /// </summary>
     public async Task<List<ServiceRequestAuditLog>> GetLogsByServiceRequestIdAsync(int serviceRequestId)
     {
-        return await _collection
-            .Find(log => log.ServiceRequestId == serviceRequestId)
-            .SortBy(log => log.TimestampUtc)
+        var entries = await _dbContext.ServiceRequestAuditLogEntries
+            .AsNoTracking()
+            .Where(log => log.ServiceRequestId == serviceRequestId)
+            .OrderBy(log => log.TimestampUtc)
             .ToListAsync();
+
+        return entries
+            .Select(log => new ServiceRequestAuditLog
+            {
+                Id = log.Id.ToString(),
+                ServiceRequestId = log.ServiceRequestId,
+                Action = log.Action,
+                TimestampUtc = log.TimestampUtc,
+                Details = log.Details
+            })
+            .ToList();
     }
 }

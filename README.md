@@ -3,10 +3,11 @@
 A production-style full-stack backoffice system focused on internal
 service request management, built with **ASP.NET Core Web API (.NET 8)**
 and **Angular**. The current implementation combines an authenticated
-SPA, a REST API, an operational dashboard, and a dual-database design:
+SPA, a REST API, an operational dashboard, and a PostgreSQL-backed data
+model:
 
 -   **PostgreSQL** for primary business data
--   **MongoDB (Docker-based)** for audit logging
+-   **PostgreSQL JSONB** for service request audit history
 
 ------------------------------------------------------------------------
 
@@ -25,11 +26,15 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
 -   Service layer architecture (Controller → Service → DbContext)
 -   Role-based authorization on service request write operations
 -   Centralized validation responses for invalid API payloads
--   PostgreSQL (EF Core) for core application data
--   MongoDB for audit logging of create, update, and delete events
+-   PostgreSQL (EF Core) for core application data and audit log
+    persistence
+-   Audit logging for create, update, and delete events using
+    PostgreSQL JSONB
+-   Audit history preserved after service request deletion
+-   Backend audit history endpoint for service requests
 -   Swagger UI available in local development and in the containerized
     backend runtime
--   Fail-safe audit logging (MongoDB write failures do not block the API)
+-   Fail-safe audit logging (audit write failures do not block the API)
 
 ### Role-Aware UI
 
@@ -42,13 +47,15 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
     single role-aware permission layer for feature access decisions
 -   Read-only users are not shown irrelevant write actions, keeping the
     interface clean and reducing accidental or unauthorized workflows
+-   Audit log data is currently exposed by the backend API only; the
+    frontend does not yet render audit history views
 
 ------------------------------------------------------------------------
 
 ## 🧱 Architecture
 
 -   **Backend**: ASP.NET Core Web API (.NET 8), PostgreSQL for
-    operational data, MongoDB for audit logs
+    operational data and audit history
 -   **Frontend**: Angular standalone SPA using RxJS and `AsyncPipe`
 -   **Application Flow**: Angular client → authenticated API endpoints
 -   **Client Views**: Login, dashboard, and service request workspace
@@ -66,12 +73,15 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
 
 ## 🗄️ Data Architecture
 
--   **PostgreSQL** is the primary database for structured transactional
-    data, including service requests, users, roles, and related
-    application records.
--   **MongoDB** is used for flexible, append-only audit logs that track
-    service request changes without affecting the main transactional
-    workflow.
+-   **PostgreSQL** is the system of record for structured transactional
+    data, including service requests, users, roles, related application
+    records, and service request audit history.
+-   Audit logs are stored in PostgreSQL using a **JSONB** column for the
+    audit details payload while preserving the service request id,
+    action, and timestamp as first-class fields.
+-   Audit history is retained after a service request is deleted by
+    preserving the original `ServiceRequestId` in the audit record
+    without requiring the live service request row to remain present.
 
 ------------------------------------------------------------------------
 
@@ -83,9 +93,8 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
 -   Entity Framework Core
 -   ASP.NET Core Authentication / Authorization
 -   PostgreSQL
--   MongoDB
 -   xUnit
--   Testcontainers for PostgreSQL and MongoDB
+-   Testcontainers for PostgreSQL
 -   Docker
 
 ------------------------------------------------------------------------
@@ -133,6 +142,18 @@ treated consistently, while the API contract remains stable.
 
 -   `GET /api/ServiceRequests/{id}/audit-logs`
 
+Audit log responses currently include:
+
+-   `Id`
+-   `ServiceRequestId`
+-   `Action`
+-   `TimestampUtc`
+-   `Details`
+
+Audit history is stored in PostgreSQL JSONB and is retained after a
+service request is deleted. The backend can still return deleted-request
+history when the original service request id is known.
+
 ### Health
 
 -   `GET /health` - overall service health
@@ -169,8 +190,8 @@ authentication flows.
 -   `ServiceRequestService` integration tests covering query filtering,
     search, sorting, pagination, dashboard aggregation, and
     create/update/delete behavior against PostgreSQL
--   `ServiceRequestAuditLogService` integration tests covering MongoDB
-    audit log persistence
+-   `ServiceRequestAuditLogService` integration tests covering
+    PostgreSQL audit log persistence and read-back behavior
 -   Auth/login API integration tests covering successful login, invalid
     credentials, unauthenticated access rejection, and authenticated
     access with a JWT obtained from the login endpoint
@@ -182,13 +203,15 @@ authentication flows.
 ### Testing Approach
 
 -   Service-level integration tests run against ephemeral
-    **PostgreSQL Testcontainers** and **MongoDB Testcontainers**
+    **PostgreSQL Testcontainers**
 -   API integration tests use **`WebApplicationFactory`** to boot the
     ASP.NET Core application in a test host and exercise real HTTP
     endpoints
 -   Authentication-focused API tests log in through
     `POST /api/Auth/login` and use the returned bearer token for
     protected endpoint coverage
+-   Audit retention coverage verifies that delete operations preserve
+    historical audit entries in PostgreSQL
 
 ------------------------------------------------------------------------
 
@@ -279,7 +302,6 @@ Playwright E2E uses `docker-compose.e2e.yml` for isolated database
 services only:
 
 -   PostgreSQL on `localhost:55432`
--   MongoDB on `localhost:37017`
 
 The backend now applies EF Core migrations on startup, and startup
 bootstrap supports `Admin`, `Operator`, and `Viewer` users for isolated
@@ -292,9 +314,8 @@ export POSTGRES_PASSWORD=<your-e2e-postgres-password>
 docker compose -f docker-compose.e2e.yml up -d
 ```
 
-The API should then be started with E2E-specific connection strings,
-MongoDB settings, JWT key, and bootstrap credentials for the three test
-roles.
+The API should then be started with E2E-specific PostgreSQL connection
+settings, JWT key, and bootstrap credentials for the three test roles.
 
 ------------------------------------------------------------------------
 
@@ -342,10 +363,26 @@ POSTGRES_PASSWORD=change_me
 JWT_KEY=replace_with_a_secure_random_secret
 ```
 
+The current `docker-compose.yml` also expects HTTPS certificate
+configuration for the backend container:
+
+``` bash
+HTTPS_CERT_PATH=/https/<your-certificate>.pfx
+HTTPS_CERT_PASSWORD=<your-certificate-password>
+```
+
+Optional host port overrides:
+
+``` bash
+BACKEND_HTTP_PORT=8080
+BACKEND_HTTPS_PORT=8443
+```
+
 Minimal local setup:
 
 ``` bash
 cp .env.example .env
+# then add HTTPS_CERT_PATH and HTTPS_CERT_PASSWORD to .env
 docker compose up --build
 ```
 
@@ -356,7 +393,9 @@ backend waits for PostgreSQL to become healthy before startup through
 The backend is then available at:
 
 -   `http://localhost:8080`
+-   `https://localhost:8443`
 -   Swagger UI: `http://localhost:8080/swagger`
+-   Swagger UI (HTTPS): `https://localhost:8443/swagger`
 -   Health: `http://localhost:8080/health`
 -   Liveness: `http://localhost:8080/health/live`
 -   Readiness: `http://localhost:8080/health/ready`
@@ -417,8 +456,10 @@ Open:
     permission helpers and conditional rendering
 -   Role-based access rules are applied where records are created,
     changed, and deleted
--   PostgreSQL remains the source of truth while MongoDB is limited to
-    audit history
+-   PostgreSQL is the single system of record for both transactional
+    data and audit history
+-   Audit history is preserved after service request deletion while
+    remaining queryable by original service request id
 -   Configuration is environment-driven for API base URL, CORS, JWT, and
     database settings
 
@@ -426,8 +467,10 @@ Open:
 
 ## 📌 Notes
 
--   MongoDB is used only for audit logs
 -   PostgreSQL is the source of truth
+-   Audit logs are stored in PostgreSQL JSONB and exposed through
+    `GET /api/ServiceRequests/{id}/audit-logs`
+-   Audit log views are not yet implemented in the frontend
 -   The frontend currently consumes the API over HTTPS
 -   A bootstrap admin account can be created from configuration when the
     application starts with an empty user store
@@ -457,7 +500,7 @@ This project is developed as a **portfolio and demonstration project** to showca
 - It is **not deployed for real customers or business operations**
 - It is **not provided as a service to third parties**
 
-All components, including MongoDB used for audit logging, are used **strictly as internal implementation details** within the application.
+All components are used **strictly as internal implementation details** within the application.
 
 This project is intended solely for:
 - Learning

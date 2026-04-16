@@ -8,8 +8,6 @@ SPA, a REST API, an operational dashboard, and a dual-database design:
 -   **PostgreSQL** for primary business data
 -   **MongoDB (Docker-based)** for audit logging
 
-> It is **not an open-source project**, and all rights are reserved.
-
 ------------------------------------------------------------------------
 
 ## 🚀 Features
@@ -454,6 +452,7 @@ Jason
 
 This project is developed as a **portfolio and demonstration project** to showcase software engineering practices, including full-stack development, system design, and deployment.
 
+- It is **not an open-source project**
 - It is **not used for any commercial purpose**
 - It is **not deployed for real customers or business operations**
 - It is **not provided as a service to third parties**
@@ -464,5 +463,7 @@ This project is intended solely for:
 - Learning
 - Demonstration
 - Technical evaluation
+
+All rights reserved.
 
 No commercial usage is intended or planned.

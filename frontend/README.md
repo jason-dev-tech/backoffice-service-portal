@@ -4,8 +4,6 @@ Angular-based UI for the **Backoffice Service Portal**. This frontend
 provides the authenticated user experience for the backoffice system and
 consumes the ASP.NET Core Web API.
 
-> It is **not an open-source project**, and all rights are reserved.
-
 ------------------------------------------------------------------------
 
 ## 🚀 Features
@@ -234,6 +232,7 @@ Jason
 
 This project is developed as a **portfolio and demonstration project** to showcase software engineering practices, including full-stack development, system design, and deployment.
 
+- It is **not an open-source project**
 - It is **not used for any commercial purpose**
 - It is **not deployed for real customers or business operations**
 - It is **not provided as a service to third parties**
@@ -244,5 +243,7 @@ This project is intended solely for:
 - Learning
 - Demonstration
 - Technical evaluation
+
+All rights reserved.
 
 No commercial usage is intended or planned.

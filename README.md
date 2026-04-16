@@ -351,8 +351,19 @@ settings, JWT key, and bootstrap credentials for the three test roles.
 
 ### Backend
 
-Local Docker runtime uses the repository root `docker-compose.yml` with
-PostgreSQL and the backend API container.
+Deployment uses the repository root `docker-compose.yml` on a single
+EC2 instance.
+
+-   Docker Compose manages the ASP.NET Core backend container and the
+    PostgreSQL container
+-   HTTPS is handled by Kestrel with a mounted certificate
+-   Only port `443` is exposed publicly
+-   Backend HTTP is bound to `127.0.0.1:8080`
+-   PostgreSQL is bound to `127.0.0.1:5432`
+-   PostgreSQL data is persisted in the `postgres_data` Docker volume
+-   Health checks are configured for both services
+-   Backend startup depends on PostgreSQL health through `depends_on`
+    with `condition: service_healthy`
 
 Required environment variables are defined in `.env.example`:
 
@@ -363,22 +374,14 @@ POSTGRES_PASSWORD=change_me
 JWT_KEY=replace_with_a_secure_random_secret
 ```
 
-The current `docker-compose.yml` also expects HTTPS certificate
-configuration for the backend container:
+The backend container also requires HTTPS certificate configuration:
 
 ``` bash
 HTTPS_CERT_PATH=/https/<your-certificate>.pfx
 HTTPS_CERT_PASSWORD=<your-certificate-password>
 ```
 
-Optional host port overrides:
-
-``` bash
-BACKEND_HTTP_PORT=8080
-BACKEND_HTTPS_PORT=8443
-```
-
-Minimal local setup:
+Deployment startup:
 
 ``` bash
 cp .env.example .env
@@ -386,33 +389,27 @@ cp .env.example .env
 docker compose up --build
 ```
 
-The Compose setup health-checks PostgreSQL with `pg_isready`, and the
-backend waits for PostgreSQL to become healthy before startup through
-`depends_on` with `condition: service_healthy`.
+Public access:
 
-The backend is then available at:
+-   `https://<host-or-domain>`
+-   Swagger UI: `https://<host-or-domain>/swagger`
 
--   `http://localhost:8080`
--   `https://localhost:8443`
--   Swagger UI: `http://localhost:8080/swagger`
--   Swagger UI (HTTPS): `https://localhost:8443/swagger`
--   Health: `http://localhost:8080/health`
--   Liveness: `http://localhost:8080/health/live`
--   Readiness: `http://localhost:8080/health/ready`
+Internal bindings:
+
+-   Backend HTTP: `127.0.0.1:8080`
+-   PostgreSQL: `127.0.0.1:5432`
 
 On container startup, the API applies EF Core migrations
-automatically. Startup migration includes retry logic, which helps the
-API start reliably when PostgreSQL is not immediately ready.
+automatically. Startup migration includes retry logic for PostgreSQL
+readiness.
 
-The backend container health check uses the existing
-`/health/ready` endpoint. The runtime image includes `wget`
-specifically so the container health check can call that readiness
-endpoint.
+The backend container health check calls `/health/ready`. PostgreSQL
+health is checked with `pg_isready`.
 
 JWT signing configuration for the containerized backend is provided
 through environment variables, including `JWT_KEY`.
 
-For local non-container development:
+Local non-container development:
 
 ``` bash
 cd backend/BackofficeServicePortal.Api

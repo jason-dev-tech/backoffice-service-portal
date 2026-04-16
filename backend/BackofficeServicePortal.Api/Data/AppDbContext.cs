@@ -66,11 +66,5 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ServiceRequestAuditLogEntry>()
             .Property(log => log.Details)
             .HasColumnType("jsonb");
-
-        modelBuilder.Entity<ServiceRequestAuditLogEntry>()
-            .HasOne<ServiceRequest>()
-            .WithMany()
-            .HasForeignKey(log => log.ServiceRequestId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

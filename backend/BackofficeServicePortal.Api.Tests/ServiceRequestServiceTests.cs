@@ -433,6 +433,28 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     }
 
     [Fact]
+    public async Task DeleteAsync_PreservesAuditLogAfterServiceRequestRemoval()
+    {
+        await ResetDatabaseAsync();
+        await SeedServiceRequestsAsync(
+            CreateRequest(1, "Sales report discrepancy", "Review a mismatch in the weekly sales report totals.", "Bianca", "Open", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)));
+
+        var service = CreateService();
+
+        var deleted = await service.DeleteAsync(1);
+
+        Assert.True(deleted);
+
+        await using var dbContext = CreateDbContext();
+        Assert.Empty(await dbContext.ServiceRequests.ToListAsync());
+
+        var persistedAuditLog = await dbContext.ServiceRequestAuditLogEntries.SingleAsync();
+        Assert.Equal(1, persistedAuditLog.ServiceRequestId);
+        Assert.Equal("Deleted", persistedAuditLog.Action);
+        Assert.Equal("\"Service request 'Sales report discrepancy' was deleted.\"", persistedAuditLog.Details);
+    }
+
+    [Fact]
     public async Task DeleteAsync_ReturnsFalseWhenServiceRequestDoesNotExist()
     {
         await ResetDatabaseAsync();

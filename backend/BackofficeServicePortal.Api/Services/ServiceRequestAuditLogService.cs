@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BackofficeServicePortal.Api.Data;
 using BackofficeServicePortal.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,7 @@ public class ServiceRequestAuditLogService
                 ServiceRequestId = log.ServiceRequestId,
                 Action = log.Action,
                 TimestampUtc = log.TimestampUtc,
-                Details = log.Details
+                Details = JsonSerializer.Serialize(log.Details)
             });
 
             await _dbContext.SaveChangesAsync();
@@ -58,7 +59,7 @@ public class ServiceRequestAuditLogService
                 ServiceRequestId = log.ServiceRequestId,
                 Action = log.Action,
                 TimestampUtc = log.TimestampUtc,
-                Details = log.Details
+                Details = JsonSerializer.Deserialize<string>(log.Details) ?? string.Empty
             })
             .ToList();
     }

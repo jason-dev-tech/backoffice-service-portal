@@ -38,7 +38,7 @@ public sealed class ServiceRequestAuditLogServiceTests : IClassFixture<PostgreSq
         Assert.Equal(101, persistedLog.ServiceRequestId);
         Assert.Equal("Created", persistedLog.Action);
         Assert.Equal(expectedTimestamp, persistedLog.TimestampUtc);
-        Assert.Equal("Service request 'Sales report discrepancy' was created.", persistedLog.Details);
+        Assert.Equal("\"Service request 'Sales report discrepancy' was created.\"", persistedLog.Details);
     }
 
     [Fact]
@@ -74,12 +74,12 @@ public sealed class ServiceRequestAuditLogServiceTests : IClassFixture<PostgreSq
         Assert.Equal(201, persistedLogs[0].ServiceRequestId);
         Assert.Equal("Created", persistedLogs[0].Action);
         Assert.Equal(new DateTime(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc), persistedLogs[0].TimestampUtc);
-        Assert.Equal("Service request 'Invoice processing delay' was created.", persistedLogs[0].Details);
+        Assert.Equal("\"Service request 'Invoice processing delay' was created.\"", persistedLogs[0].Details);
 
         Assert.Equal(201, persistedLogs[1].ServiceRequestId);
         Assert.Equal("Updated", persistedLogs[1].Action);
         Assert.Equal(new DateTime(2026, 4, 11, 0, 0, 0, DateTimeKind.Utc), persistedLogs[1].TimestampUtc);
-        Assert.Equal("Service request 'Invoice processing delay' was updated.", persistedLogs[1].Details);
+        Assert.Equal("\"Service request 'Invoice processing delay' was updated.\"", persistedLogs[1].Details);
     }
 
     [Fact]

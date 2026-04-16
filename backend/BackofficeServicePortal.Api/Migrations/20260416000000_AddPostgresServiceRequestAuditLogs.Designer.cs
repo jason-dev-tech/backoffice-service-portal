@@ -3,6 +3,7 @@ using System;
 using BackofficeServicePortal.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackofficeServicePortal.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416000000_AddPostgresServiceRequestAuditLogs")]
+    partial class AddPostgresServiceRequestAuditLogs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,6 +190,15 @@ namespace BackofficeServicePortal.Api.Migrations
                     b.ToTable("UserRoles");
                 });
 
+            modelBuilder.Entity("BackofficeServicePortal.Api.Models.ServiceRequestAuditLogEntry", b =>
+                {
+                    b.HasOne("BackofficeServicePortal.Api.Models.ServiceRequest", null)
+                        .WithMany()
+                        .HasForeignKey("ServiceRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("BackofficeServicePortal.Api.Models.UserRole", b =>
                 {
                     b.HasOne("BackofficeServicePortal.Api.Models.Role", "Role")
@@ -204,15 +216,6 @@ namespace BackofficeServicePortal.Api.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BackofficeServicePortal.Api.Models.ServiceRequestAuditLogEntry", b =>
-                {
-                    b.HasOne("BackofficeServicePortal.Api.Models.ServiceRequest", null)
-                        .WithMany()
-                        .HasForeignKey("ServiceRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("BackofficeServicePortal.Api.Models.Role", b =>

@@ -25,6 +25,9 @@ jobs:
         github.event.workflow_run.event == 'push'
       }}
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
       - name: Deploy locally
         run: |
           set -eu

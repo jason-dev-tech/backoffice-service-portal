@@ -25,13 +25,13 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       Jwt__Key: ${JWT_KEY}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: ${HTTPS_CERT_PATH}
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${HTTPS_CERT_PASSWORD}
       BootstrapAdmin__Username: ${BootstrapAdmin__Username}
       BootstrapAdmin__Password: ${BootstrapAdmin__Password}
       BootstrapAdmin__Email: ${BootstrapAdmin__Email}
       BootstrapAdmin__FullName: ${BootstrapAdmin__FullName}
       ASPNETCORE_URLS: "http://+:8080;https://+:8443"
-      ASPNETCORE_Kestrel__Certificates__Default__Path: ${HTTPS_CERT_PATH}
-      ASPNETCORE_Kestrel__Certificates__Default__Password: ${HTTPS_CERT_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,7 +39,7 @@ services:
       - "127.0.0.1:8080:8080"
       - "443:8443"
     volumes:
-      - ${HOME}/.aspnet/https:/https:ro
+      - /home/ubuntu/backoffice-service-portal.pfx:/https/backoffice-service-portal.pfx:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/ready > /dev/null || exit 1"]
       interval: 10s

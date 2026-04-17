@@ -29,6 +29,17 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Deploy locally
+        env:
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          HTTPS_CERT_PATH: ${{ secrets.HTTPS_CERT_PATH }}
+          HTTPS_CERT_PASSWORD: ${{ secrets.HTTPS_CERT_PASSWORD }}
+          BootstrapAdmin__Username: ${{ secrets.BootstrapAdmin__Username }}
+          BootstrapAdmin__Password: ${{ secrets.BootstrapAdmin__Password }}
+          BootstrapAdmin__Email: ${{ secrets.BootstrapAdmin__Email }}
+          BootstrapAdmin__FullName: ${{ secrets.BootstrapAdmin__FullName }}
         run: |
           set -eu
 

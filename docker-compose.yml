@@ -18,9 +18,7 @@ services:
       start_period: 5s
 
   backend:
-    build:
-      context: .
-      dockerfile: backend/BackofficeServicePortal.Api/Dockerfile
+    image: ghcr.io/jason-dev-tech/backoffice-service-portal:latest
     restart: unless-stopped
     environment:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}

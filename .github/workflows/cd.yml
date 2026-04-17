@@ -43,10 +43,10 @@ jobs:
           max_attempts=10
 
           until curl --fail --silent http://127.0.0.1:8080/health/ready > /dev/null; do
-            attempts=\$((attempts + 1))
+            attempts=$((attempts + 1))
 
-            if [ "\$attempts" -ge "\$max_attempts" ]; then
-              echo "Deployment health check failed after \$max_attempts attempts."
+            if [ "$attempts" -ge "$max_attempts" ]; then
+              echo "Deployment health check failed after $max_attempts attempts."
               docker compose ps
               exit 1
             fi

@@ -135,6 +135,8 @@ var app = builder.Build();
 // Configure middleware pipeline
 app.UseSwagger();
 app.UseSwaggerUI();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 if (!app.Environment.IsProduction())
 {
@@ -157,6 +159,7 @@ app.MapHealthChecks("/health/ready", new()
 {
     Predicate = registration => registration.Tags.Contains("ready")
 });
+app.MapFallbackToFile("index.html");
 
 using (var scope = app.Services.CreateScope())
 {

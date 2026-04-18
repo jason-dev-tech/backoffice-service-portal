@@ -74,15 +74,4 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
   ],
-
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npm run start -- --host 127.0.0.1 --port 4200',
-    env: {
-      ...process.env,
-      BACKOFFICE_API_BASE_URL: apiBaseUrl,
-    },
-    url: 'http://localhost:4200',
-    reuseExistingServer: !process.env.CI,
-  },
 });

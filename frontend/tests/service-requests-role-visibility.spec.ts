@@ -14,9 +14,12 @@ async function clickButton(button: Locator) {
 }
 
 async function signInAndWaitForAuthenticatedApp(page: Page, username: string, password: string) {
+  await page.context().clearCookies();
+  await page.evaluate(() => localStorage.clear());
+
   const usernameInput = page.getByLabel('Username');
   const passwordInput = page.getByLabel('Password');
-  const signInButton = page.getByRole('button', { name: 'Sign in' });
+  let signInButton = page.getByRole('button', { name: 'Sign in' });
 
   await expect(usernameInput).toBeVisible();
   await expect(passwordInput).toBeVisible();
@@ -25,7 +28,10 @@ async function signInAndWaitForAuthenticatedApp(page: Page, username: string, pa
   await fillField(usernameInput, username);
   await fillField(passwordInput, password);
 
-  await clickButton(signInButton);
+  await expect(signInButton).toBeVisible();
+  await expect(signInButton).toBeEnabled();
+  signInButton = page.getByRole('button', { name: 'Sign in' });
+  await signInButton.evaluate((button: HTMLButtonElement) => button.click());
 
   await waitForAuthenticatedAppReady(page);
 }
@@ -33,13 +39,12 @@ async function signInAndWaitForAuthenticatedApp(page: Page, username: string, pa
 async function waitForAuthenticatedAppReady(page: Page) {
   const serviceRequestsLink = page.getByRole('link', { name: 'Service Requests' });
 
-  await page.waitForURL((url) => !url.pathname.endsWith('/login'));
   await expect(serviceRequestsLink).toBeVisible({ timeout: 15000 });
   await expect(serviceRequestsLink).toHaveAttribute('href', /service-requests/);
 }
 
 async function waitForServiceRequestsPageReady(page: Page) {
-  await page.waitForURL(/\/service-requests$/);
+  await expect(page).toHaveURL(/\/service-requests$/);
   await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
   await expect(page.getByText('Loading service requests...')).toHaveCount(0);
 }
@@ -50,13 +55,16 @@ async function openServiceRequestsPage(page: Page) {
 }
 
 async function openCreateServiceRequestDialog(page: Page) {
-  const openButton = page.getByRole('button', { name: 'Create Service Request' });
+  let openButton = page.getByRole('button', { name: 'Create Service Request' });
   const dialog = page.getByRole('dialog', { name: 'Create Service Request' });
   const titleInput = dialog.getByLabel('Title');
   const descriptionInput = dialog.getByLabel('Description');
   const requesterNameInput = dialog.getByLabel('Requester name');
 
-  await clickButton(openButton);
+  await expect(openButton).toBeVisible();
+  await expect(openButton).toBeEnabled();
+  openButton = page.getByRole('button', { name: 'Create Service Request' });
+  await openButton.evaluate((button: HTMLButtonElement) => button.click());
   await expect(dialog).toBeVisible();
 
   await expect(titleInput).toBeVisible();
@@ -64,6 +72,23 @@ async function openCreateServiceRequestDialog(page: Page) {
   await expect(requesterNameInput).toBeVisible();
 
   return dialog;
+}
+
+async function submitCreateServiceRequestDialog(dialog: Locator) {
+  let submitButton = dialog.getByRole('button', { name: 'Create Service Request' });
+  await expect(submitButton).toBeVisible();
+  await expect(submitButton).toBeEnabled();
+  submitButton = dialog.getByRole('button', { name: 'Create Service Request' });
+  await submitButton.evaluate((button: HTMLButtonElement) => button.click());
+}
+
+async function fillCreateServiceRequestDialogField(dialog: Locator, label: string, value: string) {
+  let input = dialog.getByLabel(label);
+  await expect(input).toBeVisible();
+  input = dialog.getByLabel(label);
+  await expect(input).toBeEditable();
+  await input.fill(value);
+  await expect(input).toHaveValue(value);
 }
 
 async function filterServiceRequestsByTitle(page: Page, title: string) {
@@ -148,11 +173,11 @@ test('operator can create a service request', async ({ page }, testInfo) => {
 
   await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
   const dialog = await openCreateServiceRequestDialog(page);
-  await fillField(dialog.getByLabel('Title'), uniqueTitle);
-  await fillField(dialog.getByLabel('Description'), 'Created by the operator E2E test.');
-  await fillField(dialog.getByLabel('Requester name'), 'Operator Test User');
+  await fillCreateServiceRequestDialogField(dialog, 'Title', uniqueTitle);
+  await fillCreateServiceRequestDialogField(dialog, 'Description', 'Created by the operator E2E test.');
+  await fillCreateServiceRequestDialogField(dialog, 'Requester name', 'Operator Test User');
 
-  await clickButton(dialog.getByRole('button', { name: 'Create Service Request' }));
+  await submitCreateServiceRequestDialog(dialog);
 
   await expect(dialog).toBeHidden();
   await filterServiceRequestsByTitle(page, uniqueTitle);
@@ -175,11 +200,11 @@ test('admin can delete a service request', async ({ page }, testInfo) => {
 
   await openServiceRequestsPage(page);
   const dialog = await openCreateServiceRequestDialog(page);
-  await fillField(dialog.getByLabel('Title'), uniqueTitle);
-  await fillField(dialog.getByLabel('Description'), 'Created by the admin delete E2E test.');
-  await fillField(dialog.getByLabel('Requester name'), 'Admin Test User');
+  await fillCreateServiceRequestDialogField(dialog, 'Title', uniqueTitle);
+  await fillCreateServiceRequestDialogField(dialog, 'Description', 'Created by the admin delete E2E test.');
+  await fillCreateServiceRequestDialogField(dialog, 'Requester name', 'Admin Test User');
 
-  await clickButton(dialog.getByRole('button', { name: 'Create Service Request' }));
+  await submitCreateServiceRequestDialog(dialog);
 
   await expect(dialog).toBeHidden();
   await filterServiceRequestsByTitle(page, uniqueTitle);

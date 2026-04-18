@@ -8,11 +8,12 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const token = authService.getToken();
+  const shouldRedirectOnUnauthorized = !request.url.includes('/api/ServiceRequests/dashboard');
 
   if (!token) {
     return next(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
+        if (error.status === 401 && shouldRedirectOnUnauthorized) {
           authService.logout();
           void router.navigate(['/login']);
         }
@@ -30,7 +31,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     }),
   ).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
+      if (error.status === 401 && shouldRedirectOnUnauthorized) {
         authService.logout();
         void router.navigate(['/login']);
       }

@@ -130,6 +130,28 @@ jobs:
             sleep 2
           done
 
+      - name: Start frontend for E2E
+        working-directory: frontend
+        run: |
+          npm start -- --host 127.0.0.1 --port 4200 > /tmp/backoffice-e2e-frontend.log 2>&1 &
+          echo $! > /tmp/backoffice-e2e-frontend.pid
+
+      - name: Wait for frontend readiness
+        run: |
+          attempts=0
+          max_attempts=30
+
+          until curl --fail --silent http://localhost:4200 > /dev/null; do
+            attempts=$((attempts + 1))
+
+            if [ "$attempts" -ge "$max_attempts" ]; then
+              cat /tmp/backoffice-e2e-frontend.log
+              exit 1
+            fi
+
+            sleep 2
+          done
+
       - name: Run Playwright tests
         working-directory: frontend
         env:
@@ -149,6 +171,10 @@ jobs:
           POSTGRES_USER: ${{ vars.E2E_POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.E2E_POSTGRES_PASSWORD }}
         run: |
+          if [ -f /tmp/backoffice-e2e-frontend.pid ]; then
+            kill "$(cat /tmp/backoffice-e2e-frontend.pid)" || true
+          fi
+
           if [ -f /tmp/backoffice-e2e-backend.pid ]; then
             kill "$(cat /tmp/backoffice-e2e-backend.pid)" || true
           fi

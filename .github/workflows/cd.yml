@@ -32,22 +32,22 @@ jobs:
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ vars.DEPLOY_CONTAINER_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy locally
         env:
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ vars.DEPLOY_POSTGRES_DB }}
+          POSTGRES_USER: ${{ vars.DEPLOY_POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
           HTTPS_CERT_PATH: ${{ secrets.HTTPS_CERT_PATH }}
           HTTPS_CERT_PASSWORD: ${{ secrets.HTTPS_CERT_PASSWORD }}
-          BootstrapAdmin__Username: ${{ secrets.BootstrapAdmin__Username }}
+          BootstrapAdmin__Username: ${{ vars.DEPLOY_BOOTSTRAP_ADMIN_USERNAME }}
           BootstrapAdmin__Password: ${{ secrets.BootstrapAdmin__Password }}
-          BootstrapAdmin__Email: ${{ secrets.BootstrapAdmin__Email }}
-          BootstrapAdmin__FullName: ${{ secrets.BootstrapAdmin__FullName }}
+          BootstrapAdmin__Email: ${{ vars.DEPLOY_BOOTSTRAP_ADMIN_EMAIL }}
+          BootstrapAdmin__FullName: ${{ vars.DEPLOY_BOOTSTRAP_ADMIN_FULL_NAME }}
         run: |
           set -eu
 
@@ -62,7 +62,7 @@ jobs:
           attempts=0
           max_attempts=10
 
-          until curl --fail --silent http://127.0.0.1:8080/health/ready > /dev/null; do
+          until curl --fail --silent http://${{ vars.DEPLOY_BACKEND_HOST }}:${{ vars.DEPLOY_BACKEND_PORT }}/health/ready > /dev/null; do
             attempts=$((attempts + 1))
 
             if [ "$attempts" -ge "$max_attempts" ]; then

@@ -3,8 +3,8 @@ services:
     image: postgres:16.4-alpine
     container_name: backoffice-postgres-e2e
     environment:
-      POSTGRES_DB: backoffice_service_portal_e2e
-      POSTGRES_USER: backoffice_e2e
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "55432:5432"

@@ -56,12 +56,112 @@ jobs:
       - name: Build
         run: npm run build
 
+  e2e:
+    name: Frontend E2E
+    runs-on: ubuntu-latest
+    needs:
+      - backend
+      - frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps
+
+      - name: Start E2E PostgreSQL
+        env:
+          POSTGRES_DB: ${{ vars.E2E_POSTGRES_DB }}
+          POSTGRES_USER: ${{ vars.E2E_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.E2E_POSTGRES_PASSWORD }}
+        run: docker compose -f docker-compose.e2e.yml up -d
+
+      - name: Start backend for E2E
+        env:
+          ConnectionStrings__DefaultConnection: Host=127.0.0.1;Port=55432;Database=${{ vars.E2E_POSTGRES_DB }};Username=${{ vars.E2E_POSTGRES_USER }};Password=${{ secrets.E2E_POSTGRES_PASSWORD }}
+          Jwt__Key: ${{ secrets.E2E_JWT_KEY }}
+          ASPNETCORE_URLS: http://127.0.0.1:7179
+          BootstrapAdmin__Username: ${{ secrets.E2E_ADMIN_USERNAME }}
+          BootstrapAdmin__Password: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          BootstrapAdmin__Email: ${{ secrets.E2E_ADMIN_EMAIL }}
+          BootstrapAdmin__FullName: ${{ secrets.E2E_ADMIN_FULL_NAME }}
+          BootstrapOperator__Username: ${{ secrets.E2E_OPERATOR_USERNAME }}
+          BootstrapOperator__Password: ${{ secrets.E2E_OPERATOR_PASSWORD }}
+          BootstrapOperator__Email: ${{ secrets.E2E_OPERATOR_EMAIL }}
+          BootstrapOperator__FullName: ${{ secrets.E2E_OPERATOR_FULL_NAME }}
+          BootstrapViewer__Username: ${{ secrets.E2E_VIEWER_USERNAME }}
+          BootstrapViewer__Password: ${{ secrets.E2E_VIEWER_PASSWORD }}
+          BootstrapViewer__Email: ${{ secrets.E2E_VIEWER_EMAIL }}
+          BootstrapViewer__FullName: ${{ secrets.E2E_VIEWER_FULL_NAME }}
+        run: |
+          dotnet run --project backend/BackofficeServicePortal.Api/BackofficeServicePortal.Api.csproj --no-launch-profile > /tmp/backoffice-e2e-backend.log 2>&1 &
+          echo $! > /tmp/backoffice-e2e-backend.pid
+
+      - name: Wait for backend readiness
+        run: |
+          attempts=0
+          max_attempts=30
+
+          until curl --fail --silent http://127.0.0.1:7179/health/ready > /dev/null; do
+            attempts=$((attempts + 1))
+
+            if [ "$attempts" -ge "$max_attempts" ]; then
+              cat /tmp/backoffice-e2e-backend.log
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+      - name: Run Playwright tests
+        working-directory: frontend
+        env:
+          BACKOFFICE_API_BASE_URL: http://127.0.0.1:7179
+          E2E_USERNAME: ${{ secrets.E2E_VIEWER_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_VIEWER_PASSWORD }}
+          E2E_OPERATOR_USERNAME: ${{ secrets.E2E_OPERATOR_USERNAME }}
+          E2E_OPERATOR_PASSWORD: ${{ secrets.E2E_OPERATOR_PASSWORD }}
+          E2E_ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+        run: npx playwright test
+
+      - name: Cleanup E2E services
+        if: always()
+        env:
+          POSTGRES_DB: ${{ vars.E2E_POSTGRES_DB }}
+          POSTGRES_USER: ${{ vars.E2E_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.E2E_POSTGRES_PASSWORD }}
+        run: |
+          if [ -f /tmp/backoffice-e2e-backend.pid ]; then
+            kill "$(cat /tmp/backoffice-e2e-backend.pid)" || true
+          fi
+
+          docker compose -f docker-compose.e2e.yml down -v
+
   publish:
     name: Publish Backend Image
     runs-on: ubuntu-latest
     needs:
       - backend
       - frontend
+      - e2e
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Check out repository

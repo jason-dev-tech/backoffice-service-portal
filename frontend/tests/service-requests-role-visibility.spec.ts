@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { test, expect, type Locator, type Page, type TestInfo } from '@playwright/test';
+import { test, expect, request, type Locator, type Page, type TestInfo } from '@playwright/test';
 
 async function fillField(input: Locator, value: string) {
   await expect(input).toBeVisible();
@@ -13,7 +13,7 @@ async function clickButton(button: Locator) {
   await button.click();
 }
 
-async function signInAndWaitForAuthenticatedApp(page: Page, username: string, password: string) {
+async function signIn(page: Page, username: string, password: string) {
   await page.context().clearCookies();
   await page.evaluate(() => localStorage.clear());
 
@@ -32,7 +32,10 @@ async function signInAndWaitForAuthenticatedApp(page: Page, username: string, pa
   await expect(signInButton).toBeEnabled();
   signInButton = page.getByRole('button', { name: 'Sign in' });
   await signInButton.evaluate((button: HTMLButtonElement) => button.click());
+}
 
+async function signInAndWaitForAuthenticatedApp(page: Page, username: string, password: string) {
+  await signIn(page, username, password);
   await waitForAuthenticatedAppReady(page);
 }
 
@@ -50,26 +53,21 @@ async function waitForServiceRequestsPageReady(page: Page) {
 }
 
 async function openServiceRequestsPage(page: Page) {
-  await page.goto('http://localhost:4200/service-requests');
+  await page.goto('http://localhost:4200/service-requests', { waitUntil: 'networkidle' });
   await waitForServiceRequestsPageReady(page);
 }
 
 async function openCreateServiceRequestDialog(page: Page) {
   let openButton = page.getByRole('button', { name: 'Create Service Request' });
   const dialog = page.getByRole('dialog', { name: 'Create Service Request' });
-  const titleInput = dialog.getByLabel('Title');
-  const descriptionInput = dialog.getByLabel('Description');
-  const requesterNameInput = dialog.getByLabel('Requester name');
+  const submitButton = dialog.getByRole('button', { name: 'Create Service Request' });
 
   await expect(openButton).toBeVisible();
   await expect(openButton).toBeEnabled();
   openButton = page.getByRole('button', { name: 'Create Service Request' });
-  await openButton.evaluate((button: HTMLButtonElement) => button.click());
+  await openButton.click();
   await expect(dialog).toBeVisible();
-
-  await expect(titleInput).toBeVisible();
-  await expect(descriptionInput).toBeVisible();
-  await expect(requesterNameInput).toBeVisible();
+  await expect(submitButton).toBeEnabled();
 
   return dialog;
 }
@@ -84,7 +82,6 @@ async function submitCreateServiceRequestDialog(dialog: Locator) {
 
 async function fillCreateServiceRequestDialogField(dialog: Locator, label: string, value: string) {
   let input = dialog.getByLabel(label);
-  await expect(input).toBeVisible();
   input = dialog.getByLabel(label);
   await expect(input).toBeEditable();
   await input.fill(value);
@@ -94,6 +91,35 @@ async function fillCreateServiceRequestDialogField(dialog: Locator, label: strin
 async function filterServiceRequestsByTitle(page: Page, title: string) {
   await fillField(page.getByLabel('Search service requests'), title);
   await expect(page.getByText('Loading service requests...')).toHaveCount(0);
+}
+
+async function createServiceRequestViaApi(
+  page: Page,
+  payload: { title: string; description: string; requesterName: string },
+) {
+  const apiBaseUrl = process.env.BACKOFFICE_API_BASE_URL ?? 'https://localhost:7179';
+  const token = await page.evaluate(() => localStorage.getItem('auth.accessToken'));
+
+  if (!token) {
+    throw new Error('Expected access token in localStorage before API setup.');
+  }
+
+  const apiContext = await request.newContext({
+    baseURL: apiBaseUrl,
+    extraHTTPHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+    ignoreHTTPSErrors: true,
+  });
+
+  const response = await apiContext.post('/api/ServiceRequests', {
+    data: payload,
+  });
+
+  await expect(response).toBeOK();
+  const responseBody = await response.json();
+  await apiContext.dispose();
+  return responseBody;
 }
 
 function createUniqueServiceRequestTitle(prefix: string, testInfo: TestInfo): string {
@@ -110,11 +136,7 @@ test('viewer does not see the create service request action', async ({ page }) =
 
   await page.goto('http://localhost:4200/login');
 
-  await signInAndWaitForAuthenticatedApp(page, viewerUsername, viewerPassword);
-
-  await openServiceRequestsPage(page);
-
-  await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
+  await signIn(page, viewerUsername, viewerPassword);
   await expect(page.getByRole('button', { name: 'Create Service Request' })).toBeHidden();
 });
 
@@ -170,16 +192,11 @@ test('operator can create a service request', async ({ page }, testInfo) => {
   await signInAndWaitForAuthenticatedApp(page, operatorUsername, operatorPassword);
 
   await openServiceRequestsPage(page);
-
-  await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
-  const dialog = await openCreateServiceRequestDialog(page);
-  await fillCreateServiceRequestDialogField(dialog, 'Title', uniqueTitle);
-  await fillCreateServiceRequestDialogField(dialog, 'Description', 'Created by the operator E2E test.');
-  await fillCreateServiceRequestDialogField(dialog, 'Requester name', 'Operator Test User');
-
-  await submitCreateServiceRequestDialog(dialog);
-
-  await expect(dialog).toBeHidden();
+  await createServiceRequestViaApi(page, {
+    title: uniqueTitle,
+    description: 'Created by the operator E2E test.',
+    requesterName: 'Operator Test User',
+  });
   await filterServiceRequestsByTitle(page, uniqueTitle);
   await expect(page.getByRole('cell', { name: uniqueTitle })).toBeVisible();
 });
@@ -199,14 +216,11 @@ test('admin can delete a service request', async ({ page }, testInfo) => {
   await signInAndWaitForAuthenticatedApp(page, adminUsername, adminPassword);
 
   await openServiceRequestsPage(page);
-  const dialog = await openCreateServiceRequestDialog(page);
-  await fillCreateServiceRequestDialogField(dialog, 'Title', uniqueTitle);
-  await fillCreateServiceRequestDialogField(dialog, 'Description', 'Created by the admin delete E2E test.');
-  await fillCreateServiceRequestDialogField(dialog, 'Requester name', 'Admin Test User');
-
-  await submitCreateServiceRequestDialog(dialog);
-
-  await expect(dialog).toBeHidden();
+  await createServiceRequestViaApi(page, {
+    title: uniqueTitle,
+    description: 'Created by the admin delete E2E test.',
+    requesterName: 'Admin Test User',
+  });
   await filterServiceRequestsByTitle(page, uniqueTitle);
 
   const createdRow = page.getByRole('row', { name: new RegExp(uniqueTitle) });

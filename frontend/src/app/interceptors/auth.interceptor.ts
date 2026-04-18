@@ -11,16 +11,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const shouldRedirectOnUnauthorized = !request.url.includes('/api/ServiceRequests/dashboard');
 
   if (!token) {
-    return next(request).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401 && shouldRedirectOnUnauthorized) {
-          authService.logout();
-          void router.navigate(['/login']);
-        }
-
-        return throwError(() => error);
-      }),
-    );
+    return next(request);
   }
 
   return next(

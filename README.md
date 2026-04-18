@@ -71,6 +71,41 @@ model:
 
 ------------------------------------------------------------------------
 
+## 🚚 Deployment Overview
+
+-   The application is deployed to a single **AWS EC2** instance
+-   Public traffic is exposed on **HTTPS 443 only**
+-   **Kestrel** terminates HTTPS using a mounted certificate
+-   The **Angular frontend is served as static files by the ASP.NET Core
+    app**, so the UI and API share the same host
+-   **PostgreSQL** runs alongside the application in Docker Compose with
+    persistent volume storage
+-   The EC2 host is **deploy-only**: it pulls a prebuilt container image
+    from **GitHub Container Registry (GHCR)** and restarts services
+
+### Runtime Architecture
+
+-   Browser requests `https://<host>/`
+-   ASP.NET Core serves the compiled Angular SPA from `wwwroot`
+-   Frontend API calls target the same host under `/api/...`
+-   API requests are handled by ASP.NET Core controllers
+-   PostgreSQL stores application data, identity data, and audit history
+-   Health checks are exposed at `/health`, `/health/live`, and
+    `/health/ready`
+
+### Key Design Decisions
+
+-   **Single-host deployment** keeps infrastructure simple while still
+    demonstrating production-oriented delivery practices
+-   **Same-origin frontend and API hosting** avoids an additional reverse
+    proxy layer and simplifies browser integration
+-   **Prebuilt image promotion** keeps deployment fast and predictable by
+    separating CI build concerns from EC2 runtime concerns
+-   **Containerized Postgres with persistent volume storage** keeps the
+    stack self-contained for a portfolio environment
+
+------------------------------------------------------------------------
+
 ## 🗄️ Data Architecture
 
 -   **PostgreSQL** is the system of record for structured transactional
@@ -215,17 +250,29 @@ authentication flows.
 
 ------------------------------------------------------------------------
 
-## CI Pipeline
+## CI/CD Pipeline
 
-This project uses GitHub Actions to:
+This project uses **GitHub Actions** for both validation and deployment.
 
--   Build and test the backend (.NET 8)
--   Run backend automated tests in CI
--   Build and test the frontend (Angular + Vitest)
--   Enforce frontend build constraints through Angular budgets
+### CI Flow
 
-The pipeline helps validate changes consistently across environments and
-improves delivery reliability.
+-   Build and test the backend with **.NET 8**
+-   Build and test the frontend with **Angular + Vitest**
+-   Run the backend and frontend jobs independently in CI
+-   Publish the production container image to **GHCR** only after both
+    required jobs succeed on `push` to `main`
+
+### CD Flow
+
+-   A separate **CD** workflow is triggered after the `CI` workflow
+    completes successfully for a `push` to `main`
+-   Deployment runs on a dedicated **self-hosted GitHub Actions runner**
+    on the EC2 instance
+-   The runner pulls the latest GHCR image, restarts the Docker Compose
+    services, and verifies readiness through the backend health endpoint
+
+This setup demonstrates a clean separation between **build**, **image
+publication**, and **deployment execution**.
 
 ------------------------------------------------------------------------
 
@@ -354,8 +401,12 @@ settings, JWT key, and bootstrap credentials for the three test roles.
 Deployment uses the repository root `docker-compose.yml` on a single
 EC2 instance.
 
--   Docker Compose manages the ASP.NET Core backend container and the
-    PostgreSQL container
+-   Docker Compose manages the ASP.NET Core application container and
+    the PostgreSQL container
+-   The application container is pulled from **GHCR** as a prebuilt
+    image
+-   The container already includes the compiled Angular frontend, which
+    ASP.NET Core serves as static files
 -   HTTPS is handled by Kestrel with a mounted certificate
 -   Only port `443` is exposed publicly
 -   Backend HTTP is bound to `127.0.0.1:8080`
@@ -365,7 +416,7 @@ EC2 instance.
 -   Backend startup depends on PostgreSQL health through `depends_on`
     with `condition: service_healthy`
 
-Required environment variables are defined in `.env.example`:
+Required environment variables include:
 
 ``` bash
 POSTGRES_DB=backoffice_service_portal
@@ -384,15 +435,15 @@ HTTPS_CERT_PASSWORD=<your-certificate-password>
 Deployment startup:
 
 ``` bash
-cp .env.example .env
-# then add HTTPS_CERT_PATH and HTTPS_CERT_PASSWORD to .env
-docker compose up --build
+docker compose pull
+docker compose up -d
 ```
 
 Public access:
 
 -   `https://<host-or-domain>`
 -   Swagger UI: `https://<host-or-domain>/swagger`
+-   Frontend SPA: `https://<host-or-domain>/`
 
 Internal bindings:
 
@@ -442,8 +493,8 @@ Open:
 
 ## 💡 Key Design Highlights
 
--   The frontend and backend are separated cleanly, but operate as a
-    single backoffice application
+-   The frontend and backend are separated cleanly in the codebase, but
+    are deployed as a single web application
 -   The dashboard provides a lightweight reporting surface using the
     existing service request domain
 -   DTOs prevent direct entity exposure and keep the API contract
@@ -459,6 +510,8 @@ Open:
     remaining queryable by original service request id
 -   Configuration is environment-driven for API base URL, CORS, JWT, and
     database settings
+-   CI/CD promotes a prebuilt image to EC2 rather than rebuilding on the
+    deployment host
 
 ------------------------------------------------------------------------
 
@@ -479,8 +532,8 @@ Open:
 -   Audit log views in the frontend
 -   Expanded dashboard reporting (trend views, charts, recent activity)
 -   Broader UI coverage for role-specific workflows
--   Cloud deployment (Azure / AWS)
--   CI/CD pipeline
+-   Blue/green or rolling deployment strategy
+-   Environment-specific image tagging and release promotion
 
 ------------------------------------------------------------------------
 

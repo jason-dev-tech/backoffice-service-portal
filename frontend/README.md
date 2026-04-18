@@ -94,6 +94,15 @@ frontend/
 The frontend uses Angular environment files with a runtime override for
 backend API configuration.
 
+### Local Development vs Deployed Runtime
+
+-   In local development, the Angular app runs independently with
+    `ng serve` and connects to the backend API over HTTPS
+-   In deployed environments, the Angular app is built into the backend
+    Docker image and served by **ASP.NET Core** from `wwwroot`
+-   In production, the frontend and API share the same host, with the
+    SPA served at `/` and the API exposed under `/api/...`
+
 File:
 
     src/environments/environment.ts
@@ -174,6 +183,10 @@ Open:
 
     http://localhost:<your-frontend-port>
 
+This standalone Angular dev server flow is for local development only.
+In deployment, the compiled frontend is not hosted by `ng serve`; it is
+served by the ASP.NET Core application from the backend container.
+
 For Playwright E2E, the frontend is started by Playwright and the
 runtime config file is generated before `ng serve` starts.
 
@@ -223,6 +236,8 @@ docker compose -f ../docker-compose.e2e.yml up -d
 -   Uses environment fallback plus runtime-config override for API base
     URL selection
 -   Depends on the backend for authentication and request data
+-   In production, the frontend is delivered by ASP.NET Core from
+    `wwwroot` on the same host as the API
 
 ------------------------------------------------------------------------
 

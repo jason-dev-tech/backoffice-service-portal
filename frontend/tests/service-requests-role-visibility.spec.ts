@@ -62,6 +62,7 @@ async function openCreateServiceRequestDialog(page: Page) {
   const dialog = page.getByRole('dialog', { name: 'Create Service Request' });
   const submitButton = dialog.getByRole('button', { name: 'Create Service Request' });
 
+  await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
   await expect(openButton).toBeVisible();
   await expect(openButton).toBeEnabled();
   openButton = page.getByRole('button', { name: 'Create Service Request' });

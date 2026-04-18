@@ -1,5 +1,35 @@
 /// <reference types="node" />
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+test.describe.configure({ mode: 'serial' });
+
+async function signInAndWaitForAuthenticatedApp(page: Page, username: string, password: string) {
+  const usernameInput = page.getByLabel('Username');
+  const passwordInput = page.getByLabel('Password');
+  const signInButton = page.getByRole('button', { name: 'Sign in' });
+
+  await usernameInput.fill(username);
+  await passwordInput.fill(password);
+
+  await expect(usernameInput).toHaveValue(username);
+  await expect(passwordInput).toHaveValue(password);
+
+  await signInButton.click({ delay: 100 });
+
+  await waitForAuthenticatedAppReady(page);
+}
+
+async function waitForAuthenticatedAppReady(page: Page) {
+  const serviceRequestsLink = page.getByRole('link', { name: 'Service Requests' });
+  await expect(serviceRequestsLink).toBeVisible({ timeout: 15000 });
+  await expect(serviceRequestsLink).toHaveAttribute('href', /service-requests/);
+}
+
+async function waitForServiceRequestsPageReady(page: Page) {
+  await page.waitForURL(/\/service-requests$/);
+  await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
+  await expect(page.getByText('Loading service requests...')).toHaveCount(0);
+}
 
 test('viewer does not see the create service request action', async ({ page }) => {
   const viewerUsername = process.env.E2E_USERNAME;
@@ -11,16 +41,10 @@ test('viewer does not see the create service request action', async ({ page }) =
 
   await page.goto('http://localhost:4200/login');
 
-  await page.getByLabel('Username').fill(viewerUsername);
-  await page.getByLabel('Password').fill(viewerPassword);
-
-  await Promise.all([
-    page.waitForURL(/\/dashboard$/),
-    page.getByRole('button', { name: 'Sign in' }).click(),
-  ]);
+  await signInAndWaitForAuthenticatedApp(page, viewerUsername, viewerPassword);
 
   await page.getByRole('link', { name: 'Service Requests' }).click();
-  await page.waitForURL(/\/service-requests$/);
+  await waitForServiceRequestsPageReady(page);
 
   await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create Service Request' })).toBeHidden();
@@ -36,13 +60,7 @@ test('operator sees the create service request action', async ({ page }) => {
 
   await page.goto('http://localhost:4200/login');
 
-  await page.getByLabel('Username').fill(operatorUsername);
-  await page.getByLabel('Password').fill(operatorPassword);
-
-  await Promise.all([
-    page.waitForURL(/\/dashboard$/),
-    page.getByRole('button', { name: 'Sign in' }).click(),
-  ]);
+  await signInAndWaitForAuthenticatedApp(page, operatorUsername, operatorPassword);
 
   await page.getByRole('link', { name: 'Service Requests' }).click();
   await page.waitForURL(/\/service-requests$/);
@@ -61,13 +79,7 @@ test('admin sees create and delete service request actions', async ({ page }) =>
 
   await page.goto('http://localhost:4200/login');
 
-  await page.getByLabel('Username').fill(adminUsername);
-  await page.getByLabel('Password').fill(adminPassword);
-
-  await Promise.all([
-    page.waitForURL(/\/dashboard$/),
-    page.getByRole('button', { name: 'Sign in' }).click(),
-  ]);
+  await signInAndWaitForAuthenticatedApp(page, adminUsername, adminPassword);
 
   await page.getByRole('link', { name: 'Service Requests' }).click();
   await page.waitForURL(/\/service-requests$/);
@@ -89,16 +101,10 @@ test('operator can create a service request', async ({ page }) => {
 
   await page.goto('http://localhost:4200/login');
 
-  await page.getByLabel('Username').fill(operatorUsername);
-  await page.getByLabel('Password').fill(operatorPassword);
-
-  await Promise.all([
-    page.waitForURL(/\/dashboard$/),
-    page.getByRole('button', { name: 'Sign in' }).click(),
-  ]);
+  await signInAndWaitForAuthenticatedApp(page, operatorUsername, operatorPassword);
 
   await page.getByRole('link', { name: 'Service Requests' }).click();
-  await page.waitForURL(/\/service-requests$/);
+  await waitForServiceRequestsPageReady(page);
 
   await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
   await page.getByRole('button', { name: 'Create Service Request' }).click();
@@ -108,9 +114,13 @@ test('operator can create a service request', async ({ page }) => {
   await page.getByLabel('Description').fill('Created by the operator E2E test.');
   await page.getByLabel('Requester name').fill('Operator Test User');
 
-  await page.getByRole('dialog', { name: 'Create Service Request' }).getByRole('button', { name: 'Create Service Request' }).click();
+  await page
+    .getByRole('dialog', { name: 'Create Service Request' })
+    .getByRole('button', { name: 'Create Service Request' })
+    .click();
 
   await expect(page.getByRole('dialog', { name: 'Create Service Request' })).toBeHidden();
+  await expect(page.getByText('Loading service requests...')).toHaveCount(0);
   await expect(page.getByRole('cell', { name: uniqueTitle })).toBeVisible();
 });
 
@@ -126,19 +136,11 @@ test('admin can delete a service request', async ({ page }) => {
 
   await page.goto('http://localhost:4200/login');
 
-  await page.getByLabel('Username').fill(adminUsername);
-  await page.getByLabel('Password').fill(adminPassword);
-
-  await Promise.all([
-    page.waitForURL(/\/dashboard$/),
-    page.getByRole('button', { name: 'Sign in' }).click(),
-  ]);
+  await signInAndWaitForAuthenticatedApp(page, adminUsername, adminPassword);
 
   await page.getByRole('link', { name: 'Service Requests' }).click();
-  await page.waitForURL(/\/service-requests$/);
-
-  await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
-  await page.getByRole('button', { name: 'Create Service Request' }).click();
+  await waitForServiceRequestsPageReady(page);
+  await page.getByRole('button', { name: 'Create Service Request' }).click({ delay: 100 });
 
   await expect(page.getByRole('dialog', { name: 'Create Service Request' })).toBeVisible();
   await page.getByLabel('Title').fill(uniqueTitle);

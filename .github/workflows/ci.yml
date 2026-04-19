@@ -130,6 +130,17 @@ jobs:
             sleep 2
           done
 
+      - name: Debug frontend E2E environment
+        env:
+          E2E_BACKEND_HOST: ${{ vars.E2E_BACKEND_HOST }}
+          E2E_BACKEND_PORT: ${{ vars.E2E_BACKEND_PORT }}
+          BACKOFFICE_API_BASE_URL: http://${{ vars.E2E_BACKEND_HOST }}:${{ vars.E2E_BACKEND_PORT }}
+        run: |
+          echo "E2E_BACKEND_HOST=${E2E_BACKEND_HOST}"
+          echo "E2E_BACKEND_PORT=${E2E_BACKEND_PORT}"
+          echo "BACKOFFICE_API_BASE_URL=${BACKOFFICE_API_BASE_URL}"
+          echo "COMPOSED_BACKOFFICE_API_BASE_URL=http://${E2E_BACKEND_HOST}:${E2E_BACKEND_PORT}"
+
       - name: Start frontend for E2E
         working-directory: frontend
         run: |

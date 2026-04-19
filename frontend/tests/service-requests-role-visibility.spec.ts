@@ -36,7 +36,71 @@ async function signIn(page: Page, username: string, password: string) {
 
 async function signInAndWaitForAuthenticatedApp(page: Page, username: string, password: string) {
   await signIn(page, username, password);
+  await waitForAuthenticatedState(page);
   await waitForAuthenticatedAppReady(page);
+}
+
+async function signInAdminAndWaitForAuthenticatedApp(
+  page: Page,
+  username: string,
+  password: string,
+  testInfo: TestInfo,
+) {
+  addAdminAuthDebugLogging(page);
+
+  await signIn(page, username, password);
+  await waitForAuthenticatedState(page);
+  console.log(
+    '[admin auth debug] localStorage auth.accessToken',
+    await page.evaluate(() => localStorage.getItem('auth.accessToken')),
+  );
+  console.log(
+    '[admin auth debug] localStorage auth.expiresAtUtc',
+    await page.evaluate(() => localStorage.getItem('auth.expiresAtUtc')),
+  );
+  console.log('[admin auth debug] current URL', page.url());
+  await page.screenshot({ path: testInfo.outputPath('admin-after-login.png'), fullPage: true });
+
+  await waitForAuthenticatedAppReady(page);
+}
+
+function addAdminAuthDebugLogging(page: Page) {
+  page.on('console', (message) => {
+    console.log(`[admin auth debug] console ${message.type()}: ${message.text()}`);
+  });
+
+  page.on('pageerror', (error) => {
+    console.log(`[admin auth debug] page error: ${error.message}`);
+  });
+
+  page.on('response', async (response) => {
+    const url = response.url();
+    const status = response.status();
+    const isLoginResponse = url.includes('/api/Auth/login');
+
+    if (isLoginResponse) {
+      console.log(`[admin auth debug] login response status=${status}`);
+      console.log(`[admin auth debug] login response body=${await readResponseBody(response)}`);
+    }
+
+    if (status >= 400) {
+      console.log(`[admin auth debug] HTTP ${status} ${url}`);
+      console.log(`[admin auth debug] HTTP ${status} body=${await readResponseBody(response)}`);
+    }
+  });
+}
+
+async function readResponseBody(response: { text: () => Promise<string> }) {
+  try {
+    return await response.text();
+  } catch (error) {
+    return `Unable to read response body: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
+async function waitForAuthenticatedState(page: Page) {
+  await page.waitForFunction(() => Boolean(localStorage.getItem('auth.accessToken')));
+  await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible({ timeout: 15000 });
 }
 
 async function waitForAuthenticatedAppReady(page: Page) {
@@ -160,7 +224,7 @@ test('operator sees the create service request action', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Create Service Request' })).toBeVisible();
 });
 
-test('admin sees create and delete service request actions', async ({ page }) => {
+test('admin sees create and delete service request actions', async ({ page }, testInfo) => {
   const adminUsername = process.env.E2E_ADMIN_USERNAME;
   const adminPassword = process.env.E2E_ADMIN_PASSWORD;
 
@@ -170,7 +234,7 @@ test('admin sees create and delete service request actions', async ({ page }) =>
 
   await page.goto('http://localhost:4200/login');
 
-  await signInAndWaitForAuthenticatedApp(page, adminUsername, adminPassword);
+  await signInAdminAndWaitForAuthenticatedApp(page, adminUsername, adminPassword, testInfo);
 
   await openServiceRequestsPage(page);
 
@@ -215,7 +279,7 @@ test('admin can delete a service request', async ({ page }, testInfo) => {
 
   await page.goto('http://localhost:4200/login');
 
-  await signInAndWaitForAuthenticatedApp(page, adminUsername, adminPassword);
+  await signInAdminAndWaitForAuthenticatedApp(page, adminUsername, adminPassword, testInfo);
 
   await openServiceRequestsPage(page);
   await createServiceRequestViaApi(page, {

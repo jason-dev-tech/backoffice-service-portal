@@ -143,7 +143,10 @@ jobs:
 
       - name: Start frontend for E2E
         working-directory: frontend
+        env:
+          BACKOFFICE_API_BASE_URL: http://${{ vars.E2E_BACKEND_HOST }}:${{ vars.E2E_BACKEND_PORT }}
         run: |
+          printf 'window.__env = { apiBaseUrl: "%s" };' "${BACKOFFICE_API_BASE_URL}" > public/runtime-config.js
           npm start -- --host 127.0.0.1 --port 4200 > /tmp/backoffice-e2e-frontend.log 2>&1 &
           echo $! > /tmp/backoffice-e2e-frontend.pid
 

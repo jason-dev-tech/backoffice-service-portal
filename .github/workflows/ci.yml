@@ -166,6 +166,21 @@ jobs:
             sleep 2
           done
 
+      - name: Debug admin login API
+        env:
+          BACKOFFICE_API_BASE_URL: http://${{ vars.E2E_BACKEND_HOST }}:${{ vars.E2E_BACKEND_PORT }}
+          E2E_ADMIN_USERNAME: ${{ vars.E2E_ADMIN_USERNAME }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+        run: |
+          status=$(curl --silent --show-error --output /tmp/backoffice-admin-login-response.json --write-out "%{http_code}" --header "Content-Type: application/json" --data "$(jq -n --arg username "$E2E_ADMIN_USERNAME" --arg password "$E2E_ADMIN_PASSWORD" '{username: $username, password: $password}')" "${BACKOFFICE_API_BASE_URL}/api/Auth/login")
+          echo "HTTP status=${status}"
+          access_token_exists=$(node -e "const fs = require('fs'); const body = fs.readFileSync('/tmp/backoffice-admin-login-response.json', 'utf8'); try { const json = JSON.parse(body); console.log(Boolean(json.accessToken)); } catch { console.log(false); }")
+          echo "accessToken exists=${access_token_exists}"
+          if [ "${status}" -lt 200 ] || [ "${status}" -ge 300 ]; then
+            cat /tmp/backoffice-admin-login-response.json
+            exit 1
+          fi
+
       - name: Run Playwright tests
         working-directory: frontend
         env:

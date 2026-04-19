@@ -50,18 +50,43 @@ async function signInAdminAndWaitForAuthenticatedApp(
 
   await signIn(page, username, password);
   await waitForAuthenticatedState(page);
-  console.log(
-    '[admin auth debug] localStorage auth.accessToken',
-    await page.evaluate(() => localStorage.getItem('auth.accessToken')),
-  );
-  console.log(
-    '[admin auth debug] localStorage auth.expiresAtUtc',
-    await page.evaluate(() => localStorage.getItem('auth.expiresAtUtc')),
-  );
-  console.log('[admin auth debug] current URL', page.url());
+  const authDebug = await getAdminAuthDebugInfo(page);
+  console.log(`[admin auth debug] token present=${authDebug.tokenPresent}`);
+  console.log(`[admin auth debug] current URL=${page.url()}`);
+  console.log(`[admin auth debug] payload.role exists=${authDebug.payloadRoleExists}`);
+  console.log(`[admin auth debug] payload.roles exists=${authDebug.payloadRolesExists}`);
+  console.log(`[admin auth debug] payload.claimTypesRole exists=${authDebug.payloadClaimTypesRoleExists}`);
+  console.log(`[admin auth debug] resolved role=${authDebug.resolvedRole}`);
   await page.screenshot({ path: testInfo.outputPath('admin-after-login.png'), fullPage: true });
 
   await waitForAuthenticatedAppReady(page);
+}
+
+async function getAdminAuthDebugInfo(page: Page) {
+  return page.evaluate(() => {
+    const roleClaimType = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+    const token = localStorage.getItem('auth.accessToken');
+    let payload: Record<string, unknown> = {};
+
+    if (token) {
+      try {
+        const encodedPayload = token.split('.')[1];
+        payload = JSON.parse(atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/')));
+      } catch {
+        payload = {};
+      }
+    }
+
+    const role = payload.role ?? payload.roles ?? payload[roleClaimType] ?? null;
+
+    return {
+      tokenPresent: Boolean(token),
+      payloadRoleExists: Object.prototype.hasOwnProperty.call(payload, 'role'),
+      payloadRolesExists: Object.prototype.hasOwnProperty.call(payload, 'roles'),
+      payloadClaimTypesRoleExists: Object.prototype.hasOwnProperty.call(payload, roleClaimType),
+      resolvedRole: Array.isArray(role) ? role.join(',') : role === null ? null : String(role),
+    };
+  });
 }
 
 function addAdminAuthDebugLogging(page: Page) {
@@ -80,12 +105,13 @@ function addAdminAuthDebugLogging(page: Page) {
 
     if (isLoginResponse) {
       console.log(`[admin auth debug] login response status=${status}`);
-      console.log(`[admin auth debug] login response body=${await readResponseBody(response)}`);
     }
 
     if (status >= 400) {
       console.log(`[admin auth debug] HTTP ${status} ${url}`);
-      console.log(`[admin auth debug] HTTP ${status} body=${await readResponseBody(response)}`);
+      if (!isLoginResponse) {
+        console.log(`[admin auth debug] HTTP ${status} body=${await readResponseBody(response)}`);
+      }
     }
   });
 }

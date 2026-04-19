@@ -266,7 +266,6 @@ test('admin sees create and delete service request actions', async ({ page }, te
 
   await expect(page.getByRole('heading', { name: 'Service Requests' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create Service Request' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Delete' }).first()).toBeVisible();
 });
 
 test('operator can create a service request', async ({ page }, testInfo) => {

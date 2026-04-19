@@ -97,7 +97,7 @@ backend API configuration.
 ### Local Development vs Deployed Runtime
 
 -   In local development, the Angular app runs independently with
-    `ng serve` and connects to the backend API over HTTPS
+    `npm start` and uses the configured backend API base URL
 -   In deployed environments, the Angular app is built into the backend
     Docker image and served by **ASP.NET Core** from `wwwroot`
 -   In production, the frontend and API share the same host, with the
@@ -125,9 +125,10 @@ export const environment = {
 -   `environment.ts` / `environment.prod.ts` keep
     `https://localhost:7179` as the fallback API URL
 -   `src/index.html` loads `/runtime-config.js` before Angular bootstraps
--   Playwright startup generates `public/runtime-config.js` so the
-    frontend can target the isolated E2E backend without modifying
-    tracked source files
+-   The frontend reads `window.BACKOFFICE_API_BASE_URL` from
+    `/runtime-config.js` when that value is present
+-   The production Docker build and Playwright config generate
+    `public/runtime-config.js` for their respective runtime targets
 -   `public/runtime-config.js` is a generated artifact and should not be
     committed
 
@@ -176,7 +177,7 @@ npm install
 Start development server:
 
 ``` bash
-ng serve
+npm start
 ```
 
 Open:
@@ -187,8 +188,9 @@ This standalone Angular dev server flow is for local development only.
 In deployment, the compiled frontend is not hosted by `ng serve`; it is
 served by the ASP.NET Core application from the backend container.
 
-For Playwright E2E, the frontend is started by Playwright and the
-runtime config file is generated before `ng serve` starts.
+For Playwright E2E, start the frontend separately. The Playwright config
+generates the runtime config file from `BACKOFFICE_API_BASE_URL` when
+the test suite starts.
 
 ------------------------------------------------------------------------
 
@@ -196,14 +198,17 @@ runtime config file is generated before `ng serve` starts.
 
 Current Playwright E2E coverage includes:
 
--   role-based visibility
--   operator create service request flow
--   admin delete service request flow
+-   viewer, operator, and admin role-based action visibility
+-   authenticated post-login readiness before protected-page assertions
+-   operator-authorized service request creation through the API with
+    frontend list verification
+-   admin delete service request flow against a test-created record
 
 E2E runs are intended to use an isolated PostgreSQL service
 from the repository root `docker-compose.e2e.yml`. The backend applies
 EF Core migrations on startup for fresh E2E databases and supports
-bootstrap users for `Admin`, `Operator`, and `Viewer`.
+bootstrap users for `Admin`, `Operator`, and `Viewer`. The suite runs
+serially with one Playwright worker.
 
 Minimal setup:
 
@@ -232,7 +237,8 @@ docker compose -f ../docker-compose.e2e.yml up -d
 
 ## 📌 Notes
 
--   Requires backend to run on HTTPS for proper integration
+-   Local development defaults to `https://localhost:7179`, while E2E
+    and deployment can override the API base URL at runtime
 -   Uses environment fallback plus runtime-config override for API base
     URL selection
 -   Depends on the backend for authentication and request data
@@ -264,10 +270,7 @@ This project is developed as a **portfolio and demonstration project** to showca
 
 All components are used **strictly as internal implementation details** within the application.
 
-This project is intended solely for:
-- Learning
-- Demonstration
-- Technical evaluation
+This project is intended for demonstration purposes only.
 
 All rights reserved.
 

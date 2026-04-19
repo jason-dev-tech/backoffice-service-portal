@@ -258,16 +258,20 @@ This project uses **GitHub Actions** for both validation and deployment.
 
 -   Build and test the backend with **.NET 8**
 -   Build and test the frontend with **Angular + Vitest**
--   Run the backend and frontend jobs independently in CI
--   Publish the production container image to **GHCR** only after both
-    required jobs succeed on `push` to `main`
+-   Run Playwright E2E against an isolated PostgreSQL-backed test
+    environment after the backend and frontend jobs pass
+-   Publish the production container image to **GHCR** only after the
+    backend, frontend, and E2E jobs succeed on `push` to `main`
+-   Authenticate to GHCR with the GitHub actor and `GITHUB_TOKEN`
+-   Push the backend image as the configured deployment repository with
+    the `latest` tag
 
 ### CD Flow
 
 -   A separate **CD** workflow is triggered after the `CI` workflow
     completes successfully for a `push` to `main`
 -   Deployment runs on a dedicated **self-hosted GitHub Actions runner**
-    on the EC2 instance
+    on the EC2 instance with the expected production runner labels
 -   The runner pulls the latest GHCR image, restarts the Docker Compose
     services, and verifies readiness through the backend health endpoint
 
@@ -281,12 +285,15 @@ publication**, and **deployment execution**.
 Playwright coverage currently focuses on authenticated, role-aware
 frontend workflows:
 
--   role-based visibility for service request actions
--   operator create service request flow
--   admin delete service request flow
+-   viewer, operator, and admin visibility for service request actions
+-   authenticated post-login readiness and role-aware navigation
+-   operator-authorized service request creation through the API with
+    frontend list verification
+-   admin delete service request flow against a test-created record
 
 E2E runs are designed to target an isolated database environment rather
-than local development data.
+than local development data. The suite runs serially with a single
+Playwright worker for stability.
 
 ------------------------------------------------------------------------
 
@@ -320,8 +327,10 @@ Runtime override:
 
 -   the frontend reads `window.BACKOFFICE_API_BASE_URL` from
     `/runtime-config.js`
--   Playwright startup generates `frontend/public/runtime-config.js`
-    before `ng serve`
+-   the production Docker build generates `runtime-config.js` so the
+    deployed SPA calls the same origin as the backend API
+-   Playwright configuration generates `frontend/public/runtime-config.js`
+    from `BACKOFFICE_API_BASE_URL` for E2E runs
 -   `frontend/public/runtime-config.js` is a generated artifact and
     should not be committed
 
@@ -363,6 +372,8 @@ docker compose -f docker-compose.e2e.yml up -d
 
 The API should then be started with E2E-specific PostgreSQL connection
 settings, JWT key, and bootstrap credentials for the three test roles.
+The frontend development server must be running before Playwright is
+executed; the Playwright config does not start the frontend server.
 
 ------------------------------------------------------------------------
 
@@ -421,8 +432,8 @@ Required environment variables include:
 ``` bash
 POSTGRES_DB=backoffice_service_portal
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=change_me
-JWT_KEY=replace_with_a_secure_random_secret
+POSTGRES_PASSWORD=<YOUR_POSTGRES_PASSWORD>
+JWT_KEY=<YOUR_JWT_SIGNING_KEY>
 ```
 
 The backend container also requires HTTPS certificate configuration:
@@ -478,12 +489,12 @@ dotnet dev-certs https --trust
 
 ``` bash
 cd frontend
-ng serve
+npm start
 ```
 
-For Playwright E2E, the frontend is started by Playwright and receives
-its API target through the generated runtime config file rather than by
-editing tracked source files.
+For Playwright E2E, start the frontend separately and provide its API
+target through the generated runtime config file rather than by editing
+tracked source files.
 
 Open:
 
@@ -521,9 +532,11 @@ Open:
 -   Audit logs are stored in PostgreSQL JSONB and exposed through
     `GET /api/ServiceRequests/{id}/audit-logs`
 -   Audit log views are not yet implemented in the frontend
--   The frontend currently consumes the API over HTTPS
--   A bootstrap admin account can be created from configuration when the
-    application starts with an empty user store
+-   Local frontend development uses the configured API base URL; the
+    default fallback is `https://localhost:7179`
+-   Bootstrap users for `Admin`, `Operator`, and `Viewer` can be created
+    from configuration when the application starts with an empty user
+    store
 
 ------------------------------------------------------------------------
 
@@ -552,10 +565,7 @@ This project is developed as a **portfolio and demonstration project** to showca
 
 All components are used **strictly as internal implementation details** within the application.
 
-This project is intended solely for:
-- Learning
-- Demonstration
-- Technical evaluation
+This project is intended for demonstration purposes only.
 
 All rights reserved.
 

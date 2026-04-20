@@ -433,7 +433,7 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
     }
 
     [Fact]
-    public async Task DeleteAsync_PreservesAuditLogAfterServiceRequestRemoval()
+    public async Task DeleteAsync_RemovesRecordWithoutAuditLogDependency()
     {
         await ResetDatabaseAsync();
         await SeedServiceRequestsAsync(
@@ -447,11 +447,6 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
 
         await using var dbContext = CreateDbContext();
         Assert.Empty(await dbContext.ServiceRequests.ToListAsync());
-
-        var persistedAuditLog = await dbContext.ServiceRequestAuditLogEntries.SingleAsync();
-        Assert.Equal(1, persistedAuditLog.ServiceRequestId);
-        Assert.Equal("Deleted", persistedAuditLog.Action);
-        Assert.Equal("\"Service request 'Sales report discrepancy' was deleted.\"", persistedAuditLog.Details);
     }
 
     [Fact]
@@ -507,9 +502,7 @@ public sealed class ServiceRequestServiceTests : IClassFixture<PostgreSqlFixture
             .Options;
 
         var dbContext = new AppDbContext(options);
-        var auditLogService = new ServiceRequestAuditLogService(new AppDbContext(options));
-
-        return new ServiceRequestService(dbContext, auditLogService);
+        return new ServiceRequestService(dbContext);
     }
 
     private async Task ResetDatabaseAsync()

@@ -7,7 +7,6 @@ SPA, a REST API, an operational dashboard, and a PostgreSQL-backed data
 model:
 
 -   **PostgreSQL** for primary business data
--   **PostgreSQL JSONB** for service request audit history
 
 ------------------------------------------------------------------------
 
@@ -26,15 +25,9 @@ model:
 -   Service layer architecture (Controller → Service → DbContext)
 -   Role-based authorization on service request write operations
 -   Centralized validation responses for invalid API payloads
--   PostgreSQL (EF Core) for core application data and audit log
-    persistence
--   Audit logging for create, update, and delete events using
-    PostgreSQL JSONB
--   Audit history preserved after service request deletion
--   Backend audit history endpoint for service requests
+-   PostgreSQL (EF Core) for core application data persistence
 -   Swagger UI available in local development and in the containerized
     backend runtime
--   Fail-safe audit logging (audit write failures do not block the API)
 
 ### Role-Aware UI
 
@@ -47,15 +40,13 @@ model:
     single role-aware permission layer for feature access decisions
 -   Read-only users are not shown irrelevant write actions, keeping the
     interface clean and reducing accidental or unauthorized workflows
--   Audit log data is currently exposed by the backend API only; the
-    frontend does not yet render audit history views
 
 ------------------------------------------------------------------------
 
 ## 🧱 Architecture
 
 -   **Backend**: ASP.NET Core Web API (.NET 8), PostgreSQL for
-    operational data and audit history
+    operational data
 -   **Frontend**: Angular standalone SPA using RxJS and `AsyncPipe`
 -   **Application Flow**: Angular client → authenticated API endpoints
 -   **Client Views**: Login, dashboard, and service request workspace
@@ -89,7 +80,7 @@ model:
 -   ASP.NET Core serves the compiled Angular SPA from `wwwroot`
 -   Frontend API calls target the same host under `/api/...`
 -   API requests are handled by ASP.NET Core controllers
--   PostgreSQL stores application data, identity data, and audit history
+-   PostgreSQL stores application data and identity data
 -   Health checks are exposed at `/health`, `/health/live`, and
     `/health/ready`
 
@@ -109,14 +100,8 @@ model:
 ## 🗄️ Data Architecture
 
 -   **PostgreSQL** is the system of record for structured transactional
-    data, including service requests, users, roles, related application
-    records, and service request audit history.
--   Audit logs are stored in PostgreSQL using a **JSONB** column for the
-    audit details payload while preserving the service request id,
-    action, and timestamp as first-class fields.
--   Audit history is retained after a service request is deleted by
-    preserving the original `ServiceRequestId` in the audit record
-    without requiring the live service request row to remain present.
+    data, including service requests, users, roles, and related
+    application records.
 
 ------------------------------------------------------------------------
 
@@ -173,22 +158,6 @@ treated consistently, while the API contract remains stable.
 -   `PUT /api/ServiceRequests/{id}`
 -   `DELETE /api/ServiceRequests/{id}`
 
-### Audit Logs
-
--   `GET /api/ServiceRequests/{id}/audit-logs`
-
-Audit log responses currently include:
-
--   `Id`
--   `ServiceRequestId`
--   `Action`
--   `TimestampUtc`
--   `Details`
-
-Audit history is stored in PostgreSQL JSONB and is retained after a
-service request is deleted. The backend can still return deleted-request
-history when the original service request id is known.
-
 ### Health
 
 -   `GET /health` - overall service health
@@ -225,8 +194,6 @@ authentication flows.
 -   `ServiceRequestService` integration tests covering query filtering,
     search, sorting, pagination, dashboard aggregation, and
     create/update/delete behavior against PostgreSQL
--   `ServiceRequestAuditLogService` integration tests covering
-    PostgreSQL audit log persistence and read-back behavior
 -   Auth/login API integration tests covering successful login, invalid
     credentials, unauthenticated access rejection, and authenticated
     access with a JWT obtained from the login endpoint
@@ -245,8 +212,6 @@ authentication flows.
 -   Authentication-focused API tests log in through
     `POST /api/Auth/login` and use the returned bearer token for
     protected endpoint coverage
--   Audit retention coverage verifies that delete operations preserve
-    historical audit entries in PostgreSQL
 
 ------------------------------------------------------------------------
 
@@ -504,10 +469,7 @@ Open:
     permission helpers and conditional rendering
 -   Role-based access rules are applied where records are created,
     changed, and deleted
--   PostgreSQL is the single system of record for both transactional
-    data and audit history
--   Audit history is preserved after service request deletion while
-    remaining queryable by original service request id
+-   PostgreSQL is the single system of record for transactional data
 -   Configuration is environment-driven for API base URL, CORS, JWT, and
     database settings
 -   CI/CD promotes a prebuilt image to EC2 rather than rebuilding on the
@@ -518,9 +480,6 @@ Open:
 ## 📌 Notes
 
 -   PostgreSQL is the source of truth
--   Audit logs are stored in PostgreSQL JSONB and exposed through
-    `GET /api/ServiceRequests/{id}/audit-logs`
--   Audit log views are not yet implemented in the frontend
 -   The frontend currently consumes the API over HTTPS
 -   A bootstrap admin account can be created from configuration when the
     application starts with an empty user store
@@ -529,7 +488,6 @@ Open:
 
 ## 📈 Future Improvements
 
--   Audit log views in the frontend
 -   Expanded dashboard reporting (trend views, charts, recent activity)
 -   Broader UI coverage for role-specific workflows
 -   Blue/green or rolling deployment strategy

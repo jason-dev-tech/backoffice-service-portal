@@ -17,8 +17,6 @@ public class AppDbContext : DbContext
 
     public DbSet<UserRole> UserRoles => Set<UserRole>();
 
-    public DbSet<ServiceRequestAuditLogEntry> ServiceRequestAuditLogEntries => Set<ServiceRequestAuditLogEntry>();
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -55,16 +53,5 @@ public class AppDbContext : DbContext
                 new Role { Id = 1, Name = "Admin" },
                 new Role { Id = 2, Name = "Operator" },
                 new Role { Id = 3, Name = "Viewer" });
-
-        modelBuilder.Entity<ServiceRequestAuditLogEntry>()
-            .HasIndex(log => log.ServiceRequestId);
-
-        modelBuilder.Entity<ServiceRequestAuditLogEntry>()
-            .Property(log => log.Action)
-            .HasMaxLength(50);
-
-        modelBuilder.Entity<ServiceRequestAuditLogEntry>()
-            .Property(log => log.Details)
-            .HasColumnType("jsonb");
     }
 }

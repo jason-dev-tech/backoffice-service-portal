@@ -16,14 +16,10 @@ public class ServiceRequestService : IServiceRequestService
     }
 
     private readonly AppDbContext _dbContext;
-    private readonly ServiceRequestAuditLogService _auditLogService;
 
-    public ServiceRequestService(
-        AppDbContext dbContext,
-        ServiceRequestAuditLogService auditLogService)
+    public ServiceRequestService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
-        _auditLogService = auditLogService;
     }
 
     public async Task<ServiceRequestDashboardDto> GetDashboardAsync()
@@ -149,14 +145,6 @@ public class ServiceRequestService : IServiceRequestService
         _dbContext.ServiceRequests.Add(serviceRequest);
         await _dbContext.SaveChangesAsync();
 
-        await _auditLogService.LogAsync(new ServiceRequestAuditLog
-        {
-            ServiceRequestId = serviceRequest.Id,
-            Action = "Created",
-            TimestampUtc = DateTime.UtcNow,
-            Details = $"Service request '{serviceRequest.Title}' was created."
-        });
-
         return serviceRequest.ToResponseDto();
     }
 
@@ -195,14 +183,6 @@ public class ServiceRequestService : IServiceRequestService
 
         await _dbContext.SaveChangesAsync();
 
-        await _auditLogService.LogAsync(new ServiceRequestAuditLog
-        {
-            ServiceRequestId = existingRequest.Id,
-            Action = "Updated",
-            TimestampUtc = DateTime.UtcNow,
-            Details = $"Service request '{existingRequest.Title}' was updated."
-        });
-
         return existingRequest.ToResponseDto();
     }
 
@@ -215,19 +195,8 @@ public class ServiceRequestService : IServiceRequestService
             return false;
         }
 
-        var deletedRequestId = serviceRequest.Id;
-        var deletedRequestTitle = serviceRequest.Title;
-
         _dbContext.ServiceRequests.Remove(serviceRequest);
         await _dbContext.SaveChangesAsync();
-
-        await _auditLogService.LogAsync(new ServiceRequestAuditLog
-        {
-            ServiceRequestId = deletedRequestId,
-            Action = "Deleted",
-            TimestampUtc = DateTime.UtcNow,
-            Details = $"Service request '{deletedRequestTitle}' was deleted."
-        });
 
         return true;
     }

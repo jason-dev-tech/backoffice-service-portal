@@ -24,8 +24,6 @@ consumes the ASP.NET Core Web API.
     override support
 -   Separation between pages, services, guards, interceptors, and models
 -   API error handling for login and service request operations
--   No frontend audit log view yet, even though the backend exposes
-    audit history
 
 ------------------------------------------------------------------------
 
@@ -155,14 +153,6 @@ Expected endpoints:
 -   `PUT /api/ServiceRequests/{id}`
 -   `DELETE /api/ServiceRequests/{id}`
 
-Backend capability not currently used by this frontend:
-
--   `GET /api/ServiceRequests/{id}/audit-logs`
-
-Audit history is available from the backend API, including preserved
-history for deleted service requests, but the current frontend does not
-request or render that data.
-
 ------------------------------------------------------------------------
 
 ## ▶️ Run the Frontend
@@ -244,7 +234,6 @@ docker compose -f ../docker-compose.e2e.yml up -d
 ## 📈 Future Improvements
 
 -   Expanded dashboard reporting (charts, trends, recent activity)
--   Audit log views for individual service requests
 -   Additional test coverage
 
 ------------------------------------------------------------------------

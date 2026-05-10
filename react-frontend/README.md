@@ -26,6 +26,10 @@ If `VITE_API_BASE_URL` is not set, the app falls back to `http://localhost:8080`
 
 `VITE_API_BASE_URL` is public frontend configuration, not a secret. Secrets must remain in the backend or deployment environment.
 
+## Authentication State
+
+This demo phase stores only `accessToken` and `expiresAtUtc` in `localStorage`. Production systems may prefer stronger token handling, such as HttpOnly Secure SameSite cookies, with secrets kept in the backend or deployment environment.
+
 Build for a local production check:
 
 ```bash

@@ -1,0 +1,32 @@
+# React Frontend
+
+Minimal React + TypeScript frontend skeleton for the Backoffice Service Portal.
+
+This project is intentionally small and currently renders a placeholder page only. It does not include routing, authentication, API calls, JWT handling, deployment logic, or security logic.
+
+## Local Setup
+
+```bash
+cd react-frontend
+npm install
+npm run dev
+```
+
+Build for a local production check:
+
+```bash
+npm run build
+```
+
+Preview a production build locally:
+
+```bash
+npm run preview
+```
+
+## Dependencies & Technologies Used
+
+- Vite
+- React
+- TypeScript
+- ASP.NET Core backend integration planned for a later phase

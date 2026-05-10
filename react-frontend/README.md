@@ -2,7 +2,7 @@
 
 Minimal React + TypeScript frontend skeleton for the Backoffice Service Portal.
 
-This project is intentionally small and currently renders a placeholder page only. It does not include routing, authentication, API calls, JWT handling, deployment logic, or security logic.
+This project is intentionally small and currently renders placeholder pages only. It does not include authentication, API calls, JWT handling, deployment logic, or security logic.
 
 ## Local Setup
 
@@ -28,5 +28,6 @@ npm run preview
 
 - Vite
 - React
+- React Router
 - TypeScript
 - ASP.NET Core backend integration planned for a later phase

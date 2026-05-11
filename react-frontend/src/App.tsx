@@ -31,7 +31,7 @@ function AppLayout() {
             Dashboard
           </NavLink>
           <NavLink to="/service-requests">Service Requests</NavLink>
-          <NavLink to="/login">Login</NavLink>
+          {!isAuthenticated ? <NavLink to="/login">Login</NavLink> : null}
           {isAuthenticated ? (
             <button className="logout-button" onClick={handleLogout} type="button">
               Logout

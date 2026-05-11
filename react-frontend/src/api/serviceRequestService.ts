@@ -18,8 +18,18 @@ export type PagedServiceRequestsResponse = {
   totalPages: number;
 };
 
+export type CreateServiceRequestRequest = {
+  title: string;
+  description: string;
+  requesterName: string;
+};
+
 export const serviceRequestService = {
   getServiceRequests() {
     return apiClient.get<PagedServiceRequestsResponse>('/api/ServiceRequests');
+  },
+
+  createServiceRequest(request: CreateServiceRequestRequest) {
+    return apiClient.post<ServiceRequestDto>('/api/ServiceRequests', request);
   },
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import {
   Link,
   NavLink,
@@ -69,41 +69,97 @@ function ServiceRequestsPage() {
   const [serviceRequests, setServiceRequests] = useState<ServiceRequestDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [requesterName, setRequesterName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [createErrorMessage, setCreateErrorMessage] = useState<string | null>(null);
+  const [createSuccessMessage, setCreateSuccessMessage] = useState<string | null>(null);
+
+  const loadServiceRequests = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await serviceRequestService.getServiceRequests();
+      setServiceRequests(response.items);
+    } catch {
+      setErrorMessage('Unable to load service requests.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let isCurrent = true;
-
-    async function loadServiceRequests() {
-      setIsLoading(true);
-      setErrorMessage(null);
-
-      try {
-        const response = await serviceRequestService.getServiceRequests();
-
-        if (isCurrent) {
-          setServiceRequests(response.items);
-        }
-      } catch {
-        if (isCurrent) {
-          setErrorMessage('Unable to load service requests.');
-        }
-      } finally {
-        if (isCurrent) {
-          setIsLoading(false);
-        }
-      }
-    }
-
     void loadServiceRequests();
+  }, [loadServiceRequests]);
 
-    return () => {
-      isCurrent = false;
-    };
-  }, []);
+  async function handleCreateServiceRequest(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsCreating(true);
+    setCreateErrorMessage(null);
+    setCreateSuccessMessage(null);
+
+    try {
+      await serviceRequestService.createServiceRequest({
+        title,
+        description,
+        requesterName,
+      });
+      await loadServiceRequests();
+      setTitle('');
+      setDescription('');
+      setRequesterName('');
+      setCreateSuccessMessage('Service request created.');
+    } catch {
+      setCreateErrorMessage('Unable to create service request.');
+    } finally {
+      setIsCreating(false);
+    }
+  }
 
   return (
     <section className="placeholder">
       <h1>Service Requests</h1>
+      <form className="service-request-form" onSubmit={handleCreateServiceRequest}>
+        <h2>Create Service Request</h2>
+        {createErrorMessage ? <p className="form-error">{createErrorMessage}</p> : null}
+        {createSuccessMessage ? (
+          <p className="form-success">{createSuccessMessage}</p>
+        ) : null}
+        <label className="form-field">
+          <span>Title</span>
+          <input
+            disabled={isCreating}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+            type="text"
+            value={title}
+          />
+        </label>
+        <label className="form-field">
+          <span>Description</span>
+          <textarea
+            disabled={isCreating}
+            onChange={(event) => setDescription(event.target.value)}
+            required
+            value={description}
+          />
+        </label>
+        <label className="form-field">
+          <span>Requester name</span>
+          <input
+            disabled={isCreating}
+            onChange={(event) => setRequesterName(event.target.value)}
+            required
+            type="text"
+            value={requesterName}
+          />
+        </label>
+        <button disabled={isCreating} type="submit">
+          {isCreating ? 'Creating...' : 'Create'}
+        </button>
+      </form>
       {isLoading ? <p className="integration-note">Loading service requests...</p> : null}
       {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
       {!isLoading && !errorMessage && serviceRequests.length === 0 ? (

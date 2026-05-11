@@ -116,6 +116,20 @@ p {
   outline-offset: 1px;
 }
 
+.form-field input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.form-error {
+  border: 1px solid #fecaca;
+  border-radius: 0.375rem;
+  background: #fef2f2;
+  color: #991b1b;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+}
+
 button {
   width: fit-content;
   border: 0;
@@ -130,6 +144,11 @@ button {
 
 button:hover {
   background: #374151;
+}
+
+button:disabled {
+  background: #6b7280;
+  cursor: not-allowed;
 }
 
 @media (max-width: 640px) {

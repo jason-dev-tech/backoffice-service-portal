@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom';
+import { authService } from './api/authService';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 
 function AppLayout() {
@@ -57,19 +58,33 @@ function ServiceRequestsPage() {
 function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      await authService.login({ username, password });
+    } catch {
+      setErrorMessage('Unable to sign in. Check your username and password.');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <section className="placeholder">
       <h1>Login</h1>
       <form className="login-form" onSubmit={handleSubmit}>
+        {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
         <label className="form-field">
           <span>Username</span>
           <input
             autoComplete="username"
+            disabled={isSubmitting}
             name="username"
             onChange={(event) => setUsername(event.target.value)}
             type="text"
@@ -80,13 +95,16 @@ function LoginPage() {
           <span>Password</span>
           <input
             autoComplete="current-password"
+            disabled={isSubmitting}
             name="password"
             onChange={(event) => setPassword(event.target.value)}
             type="password"
             value={password}
           />
         </label>
-        <button type="submit">Sign in</button>
+        <button disabled={isSubmitting} type="submit">
+          {isSubmitting ? 'Signing in...' : 'Sign in'}
+        </button>
       </form>
       <p className="integration-note">
         Login integration will be added in a later step.

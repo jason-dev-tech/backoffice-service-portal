@@ -1,5 +1,4 @@
 import { appConfig } from '../config';
-import { readAuthState } from '../auth/authStorage';
 
 export class ApiError extends Error {
   constructor(
@@ -13,17 +12,25 @@ export class ApiError extends Error {
 
 type RequestBody = Record<string, unknown> | unknown[];
 
+let accessToken: string | null = null;
+
+export function setAccessToken(token: string) {
+  accessToken = token;
+}
+
+export function clearAccessToken() {
+  accessToken = null;
+}
+
 async function request<TResponse>(
   path: string,
   options: RequestInit = {},
 ): Promise<TResponse> {
-  const authState = readAuthState();
-
   const response = await fetch(`${appConfig.apiBaseUrl}${path}`, {
     ...options,
     headers: {
       Accept: 'application/json',
-      ...(authState ? { Authorization: `Bearer ${authState.accessToken}` } : {}),
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
       ...options.headers,
     },

@@ -7,6 +7,10 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  clearAccessToken,
+  setAccessToken,
+} from '../api/apiClient';
+import {
   clearAuthState,
   readAuthState,
   writeAuthState,
@@ -28,17 +32,25 @@ type AuthProviderProps = {
 };
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [authState, setStoredAuthState] = useState<AuthState | null>(() =>
-    readAuthState(),
-  );
+  const [authState, setStoredAuthState] = useState<AuthState | null>(() => {
+    const storedAuthState = readAuthState();
+
+    if (storedAuthState) {
+      setAccessToken(storedAuthState.accessToken);
+    }
+
+    return storedAuthState;
+  });
 
   const setAuthState = useCallback((nextAuthState: AuthState) => {
     writeAuthState(nextAuthState);
+    setAccessToken(nextAuthState.accessToken);
     setStoredAuthState(nextAuthState);
   }, []);
 
   const logout = useCallback(() => {
     clearAuthState();
+    clearAccessToken();
     setStoredAuthState(null);
   }, []);
 

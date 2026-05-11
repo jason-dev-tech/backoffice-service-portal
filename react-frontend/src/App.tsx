@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom';
+import { ProtectedRoute } from './auth/ProtectedRoute';
 
 function AppLayout() {
   return (
@@ -61,8 +62,7 @@ function LoginPage() {
         work.
       </p>
       <p className="integration-note">
-        Authentication, protected routes, and JWT handling are not implemented
-        yet.
+        Authentication API integration and JWT handling are not implemented yet.
       </p>
     </section>
   );
@@ -72,8 +72,10 @@ export default function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route index element={<DashboardPage />} />
-        <Route path="service-requests" element={<ServiceRequestsPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="service-requests" element={<ServiceRequestsPage />} />
+        </Route>
         <Route path="login" element={<LoginPage />} />
       </Route>
     </Routes>

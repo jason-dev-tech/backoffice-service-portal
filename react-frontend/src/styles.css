@@ -86,6 +86,52 @@ p {
   color: #4b5563;
 }
 
+.login-form {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  max-width: 24rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.35rem;
+  color: #374151;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.form-field input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  color: #111827;
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+}
+
+.form-field input:focus {
+  border-color: #2563eb;
+  outline: 2px solid #bfdbfe;
+  outline-offset: 1px;
+}
+
+button {
+  width: fit-content;
+  border: 0;
+  border-radius: 0.375rem;
+  background: #111827;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.65rem 1rem;
+}
+
+button:hover {
+  background: #374151;
+}
+
 @media (max-width: 640px) {
   .site-header {
     align-items: flex-start;

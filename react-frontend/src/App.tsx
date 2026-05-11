@@ -1,3 +1,4 @@
+import { useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 
@@ -54,15 +55,41 @@ function ServiceRequestsPage() {
 }
 
 function LoginPage() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+  }
+
   return (
     <section className="placeholder">
       <h1>Login</h1>
-      <p>
-        This placeholder login page is reserved for future sign-in experience
-        work.
-      </p>
+      <form className="login-form" onSubmit={handleSubmit}>
+        <label className="form-field">
+          <span>Username</span>
+          <input
+            autoComplete="username"
+            name="username"
+            onChange={(event) => setUsername(event.target.value)}
+            type="text"
+            value={username}
+          />
+        </label>
+        <label className="form-field">
+          <span>Password</span>
+          <input
+            autoComplete="current-password"
+            name="password"
+            onChange={(event) => setPassword(event.target.value)}
+            type="password"
+            value={password}
+          />
+        </label>
+        <button type="submit">Sign in</button>
+      </form>
       <p className="integration-note">
-        Authentication API integration and JWT handling are not implemented yet.
+        Login integration will be added in a later step.
       </p>
     </section>
   );

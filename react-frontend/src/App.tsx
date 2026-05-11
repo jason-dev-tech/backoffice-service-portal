@@ -65,6 +65,19 @@ function DashboardPage() {
   );
 }
 
+function getStatusBadgeClass(status: string) {
+  switch (status.toLowerCase()) {
+    case 'open':
+      return 'status-badge status-badge-open';
+    case 'in progress':
+      return 'status-badge status-badge-in-progress';
+    case 'closed':
+      return 'status-badge status-badge-closed';
+    default:
+      return 'status-badge';
+  }
+}
+
 function ServiceRequestsPage() {
   const [serviceRequests, setServiceRequests] = useState<ServiceRequestDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -178,7 +191,11 @@ function ServiceRequestsPage() {
                 </div>
                 <div>
                   <dt>Status</dt>
-                  <dd>{serviceRequest.status}</dd>
+                  <dd>
+                    <span className={getStatusBadgeClass(serviceRequest.status)}>
+                      {serviceRequest.status}
+                    </span>
+                  </dd>
                 </div>
               </dl>
             </li>

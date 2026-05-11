@@ -26,6 +26,36 @@ If `VITE_API_BASE_URL` is not set, the app falls back to `http://localhost:8080`
 
 Frontend environment variables are bundled into browser-delivered code when they are referenced by the app. Use them only for public configuration such as API base URLs, never passwords, API keys, tokens, or private credentials.
 
+## Local Full-Stack Verification
+
+For local React and backend integration, create a local-only `.env` from `.env.example` and set:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+`.env.example` is only a template. Do not commit `.env`.
+
+The ASP.NET Core backend may require local User Secrets for values such as:
+
+```bash
+ConnectionStrings:DefaultConnection=<LOCAL_CONNECTION_STRING>
+Jwt:Key=<LOCAL_JWT_SIGNING_KEY>
+BootstrapAdmin:Password=<LOCAL_ADMIN_PASSWORD>
+AllowedOrigins:0=http://localhost:5173
+```
+
+Use local placeholder values only in notes and scripts. The Vite dev origin, usually `http://localhost:5173`, must be allowed by backend CORS for browser-based integration.
+
+Verification checklist:
+
+- Backend starts successfully.
+- Frontend starts successfully.
+- Login succeeds.
+- Protected route loads.
+- Service requests list loads.
+- Create service request works.
+
 ## Authentication State
 
 This demo phase stores only `accessToken` and `expiresAtUtc` in `localStorage`. Production systems may prefer stronger token handling, such as HttpOnly Secure SameSite cookies, with secrets kept in the backend or deployment environment.

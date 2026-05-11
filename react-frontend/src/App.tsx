@@ -1,9 +1,25 @@
 import { useState, type FormEvent } from 'react';
-import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom';
+import {
+  Link,
+  NavLink,
+  Outlet,
+  Route,
+  Routes,
+  useNavigate,
+} from 'react-router-dom';
 import { authService } from './api/authService';
+import { useAuth } from './auth/AuthContext';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 
 function AppLayout() {
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
+
+  function handleLogout() {
+    logout();
+    navigate('/login');
+  }
+
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -16,6 +32,11 @@ function AppLayout() {
           </NavLink>
           <NavLink to="/service-requests">Service Requests</NavLink>
           <NavLink to="/login">Login</NavLink>
+          {isAuthenticated ? (
+            <button className="logout-button" onClick={handleLogout} type="button">
+              Logout
+            </button>
+          ) : null}
         </nav>
       </header>
       <main className="page-content">
@@ -56,6 +77,8 @@ function ServiceRequestsPage() {
 }
 
 function LoginPage() {
+  const navigate = useNavigate();
+  const { setAuthState } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,7 +90,9 @@ function LoginPage() {
     setErrorMessage(null);
 
     try {
-      await authService.login({ username, password });
+      const authState = await authService.login({ username, password });
+      setAuthState(authState);
+      navigate('/');
     } catch {
       setErrorMessage('Unable to sign in. Check your username and password.');
     } finally {
@@ -107,7 +132,7 @@ function LoginPage() {
         </button>
       </form>
       <p className="integration-note">
-        Login integration will be added in a later step.
+        Enter your username and password to sign in.
       </p>
     </section>
   );

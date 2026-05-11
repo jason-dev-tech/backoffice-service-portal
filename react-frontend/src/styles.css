@@ -59,6 +59,18 @@ body {
   text-decoration: underline;
 }
 
+.logout-button {
+  background: transparent;
+  color: #4b5563;
+  padding: 0;
+}
+
+.logout-button:hover {
+  background: transparent;
+  color: #111827;
+  text-decoration: underline;
+}
+
 .page-content {
   display: grid;
   min-height: calc(100vh - 4rem);

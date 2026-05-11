@@ -1,8 +1,6 @@
 # React Frontend
 
-Minimal React + TypeScript frontend skeleton for the Backoffice Service Portal.
-
-This project is intentionally small and currently renders placeholder pages only. It does not include authentication, API calls, JWT handling, deployment logic, or security logic.
+Minimal React + TypeScript frontend foundation for the Backoffice Service Portal.
 
 ## Local Setup
 
@@ -26,9 +24,17 @@ If `VITE_API_BASE_URL` is not set, the app falls back to `http://localhost:8080`
 
 `VITE_API_BASE_URL` is public frontend configuration, not a secret. Secrets must remain in the backend or deployment environment.
 
+Frontend environment variables are bundled into browser-delivered code when they are referenced by the app. Use them only for public configuration such as API base URLs, never passwords, API keys, tokens, or private credentials.
+
 ## Authentication State
 
 This demo phase stores only `accessToken` and `expiresAtUtc` in `localStorage`. Production systems may prefer stronger token handling, such as HttpOnly Secure SameSite cookies, with secrets kept in the backend or deployment environment.
+
+## Frontend Security & Deployment Notes
+
+Frontend JavaScript, HTML, CSS, and embedded configuration are visible to users in the browser. Client-side checks can improve the user experience, but real authorization and sensitive decisions must remain enforced by the backend.
+
+Production source maps are explicitly disabled in `vite.config.ts` to avoid publishing expanded source context with production assets. Keep source maps internal if they are needed for production diagnostics.
 
 Build for a local production check:
 

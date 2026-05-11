@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   Link,
   NavLink,
@@ -8,6 +8,10 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { authService } from './api/authService';
+import {
+  serviceRequestService,
+  type ServiceRequestDto,
+} from './api/serviceRequestService';
 import { useAuth } from './auth/AuthContext';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 
@@ -62,16 +66,69 @@ function DashboardPage() {
 }
 
 function ServiceRequestsPage() {
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequestDto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadServiceRequests() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const response = await serviceRequestService.getServiceRequests();
+
+        if (isCurrent) {
+          setServiceRequests(response.items);
+        }
+      } catch {
+        if (isCurrent) {
+          setErrorMessage('Unable to load service requests.');
+        }
+      } finally {
+        if (isCurrent) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadServiceRequests();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
   return (
     <section className="placeholder">
       <h1>Service Requests</h1>
-      <p>
-        This placeholder page will later show and manage service request
-        activity.
-      </p>
-      <p className="integration-note">
-        Backend API integration will be added in a later phase.
-      </p>
+      {isLoading ? <p className="integration-note">Loading service requests...</p> : null}
+      {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
+      {!isLoading && !errorMessage && serviceRequests.length === 0 ? (
+        <p className="integration-note">No service requests found.</p>
+      ) : null}
+      {!isLoading && !errorMessage && serviceRequests.length > 0 ? (
+        <ul className="service-request-list">
+          {serviceRequests.map((serviceRequest) => (
+            <li className="service-request-item" key={serviceRequest.id}>
+              <h2>{serviceRequest.title}</h2>
+              <p>{serviceRequest.description}</p>
+              <dl>
+                <div>
+                  <dt>Requester</dt>
+                  <dd>{serviceRequest.requesterName}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{serviceRequest.status}</dd>
+                </div>
+              </dl>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }

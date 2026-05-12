@@ -66,6 +66,14 @@ Frontend JavaScript, HTML, CSS, and embedded configuration are visible to users 
 
 Production source maps are explicitly disabled in `vite.config.ts` to avoid publishing expanded source context with production assets. Keep source maps internal if they are needed for production diagnostics.
 
+## Azure Static Web Apps Preparation
+
+The React frontend can be deployed independently from the ASP.NET Core backend, for example to Azure Static Web Apps at `<AZURE_STATIC_WEB_APP_URL>`.
+
+Set the frontend build configuration so `VITE_API_BASE_URL=<BACKEND_API_BASE_URL>` points to the deployed backend API. Frontend environment variables are public build-time configuration and must not contain secrets.
+
+The backend CORS configuration must allow the Azure frontend origin, such as `<AZURE_STATIC_WEB_APP_URL>`. Production source maps are disabled in `vite.config.ts`.
+
 Build for a local production check:
 
 ```bash

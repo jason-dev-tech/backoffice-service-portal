@@ -37,7 +37,7 @@ services:
       - "127.0.0.1:8080:8080"
       - "443:8443"
     volumes:
-      - /home/ubuntu/backoffice-service-portal.pfx:/https/backoffice-service-portal.pfx:ro
+      - ${HTTPS_CERT_HOST_PATH}:${HTTPS_CERT_PATH}:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/ready > /dev/null || exit 1"]
       interval: 10s

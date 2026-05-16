@@ -64,6 +64,8 @@ Synced files:
 
 The server must still provide runtime configuration required by the compose file, such as `.env` values, image repository/tag overrides, certificates, and any host-mounted files. Manage secrets and runtime environment values outside tracked files.
 
+For HTTPS certificates, `HTTPS_CERT_HOST_PATH` is the source file on the EC2 host and `HTTPS_CERT_PATH` is the path inside the backend container that Kestrel reads. The certificate file must exist on the EC2 host before deployment. If the source path is wrong or missing, Docker can create a directory instead of mounting the intended certificate file.
+
 On the EC2 instance, copy the example file once and fill in real runtime values on the server only:
 
 ```sh
@@ -72,7 +74,7 @@ cp .env.example .env
 chmod 600 .env
 ```
 
-Never commit `.env`. Required runtime categories are PostgreSQL, JWT signing, HTTPS certificate path/password, and bootstrap admin settings. The deploy script checks that `.env` exists and includes the required variable names before running `docker compose up -d`, but it does not validate secret strength.
+Never commit `.env`. Required runtime categories are PostgreSQL, JWT signing, HTTPS certificate host path/container path/password, and bootstrap admin settings. The deploy script checks that `.env` exists and includes the required variable names before running `docker compose up -d`, but it does not validate secret strength.
 
 ## Verify
 

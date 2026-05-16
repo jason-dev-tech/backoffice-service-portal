@@ -47,6 +47,8 @@ docker compose pull
 docker compose up -d
 ```
 
+The remote deployment directory must already contain the required Docker Compose files and runtime configuration. Deployment will fail until artifact syncing is implemented if those files are missing.
+
 ## Verify
 
 Run:
@@ -56,6 +58,22 @@ Run:
 ```
 
 The verification script checks SSH connectivity, remote Docker availability, and the remote deployment directory.
+
+## Manual GitHub Actions Deployment
+
+The repository includes a manual `Remote Deploy` workflow that runs the same verification and deployment scripts from GitHub Actions.
+
+Configure these repository variables:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_DIR`
+
+Configure this repository secret:
+
+- `SSH_PRIVATE_KEY`
+
+Run the workflow manually from GitHub Actions when you want to verify the EC2 target and restart the remote Docker Compose services. This is a remote deployment foundation, not a full production CI/CD platform yet.
 
 ## Operational Notes
 

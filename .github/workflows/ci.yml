@@ -235,4 +235,6 @@ jobs:
           context: .
           file: backend/BackofficeServicePortal.Api/Dockerfile
           push: true
-          tags: ${{ vars.DEPLOY_IMAGE_REPOSITORY }}:latest
+          tags: |
+            ${{ vars.DEPLOY_IMAGE_REPOSITORY }}:latest
+            ${{ vars.DEPLOY_IMAGE_REPOSITORY }}:${{ github.sha }}

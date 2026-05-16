@@ -18,7 +18,7 @@ services:
       start_period: 5s
 
   backend:
-    image: ghcr.io/jason-dev-tech/backoffice-service-portal:latest
+    image: ${DEPLOY_IMAGE_REPOSITORY:-ghcr.io/jason-dev-tech/backoffice-service-portal}:${DEPLOY_IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}

@@ -259,8 +259,20 @@ This project uses **GitHub Actions** for both validation and deployment.
 -   Build and test the backend with **.NET 8**
 -   Build and test the frontend with **Angular + Vitest**
 -   Run the backend and frontend jobs independently in CI
--   Publish the production container image to **GHCR** only after both
+-   Publish the production container image to **GHCR** only after the
     required jobs succeed on `push` to `main`
+-   Publish both `latest` and the commit SHA tag for the container image
+
+### Container Image Tags
+
+-   `latest` is convenient for simple deployments that should always
+    pull the newest successful `main` image
+-   Commit SHA tags are better for immutable, traceable deployments
+-   `docker-compose.yml` supports `DEPLOY_IMAGE_REPOSITORY` and
+    `DEPLOY_IMAGE_TAG` so the deployed image can be selected through
+    environment configuration
+-   Do not put secrets, credentials, or private values in image
+    configuration
 
 ### CD Flow
 

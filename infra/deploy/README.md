@@ -29,11 +29,15 @@ export DEPLOY_USER="<ssh-user>"
 export DEPLOY_DIR="/opt/backoffice-service-portal"
 export SSH_KEY_PATH="/path/to/private-key.pem"
 export HEALTHCHECK_URL="https://<public-ip-or-dns-name>/health/ready"
+export DEPLOY_IMAGE_REPOSITORY="ghcr.io/<owner>/<image>"
+export DEPLOY_IMAGE_TAG="<commit-sha-or-latest>"
 ```
 
 Do not place secrets, credentials, or private values in these scripts.
 
 `HEALTHCHECK_URL` is optional. It can point to a backend readiness endpoint such as `/health/ready`.
+
+`DEPLOY_IMAGE_REPOSITORY` and `DEPLOY_IMAGE_TAG` are consumed by `docker-compose.yml`. The CI workflow publishes both `latest` and the commit SHA; use the SHA tag for immutable deployments, or omit these values to use the compose defaults.
 
 ## Deploy
 
@@ -54,7 +58,7 @@ Synced files:
 
 - `docker-compose.yml`
 
-The server must still provide runtime configuration required by the compose file, such as `.env` values, certificates, and any host-mounted files. Manage secrets and runtime environment values outside tracked files.
+The server must still provide runtime configuration required by the compose file, such as `.env` values, image repository/tag overrides, certificates, and any host-mounted files. Manage secrets and runtime environment values outside tracked files.
 
 ## Verify
 

@@ -32,7 +32,19 @@ require_env SSH_KEY_PATH
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-DEPLOY_ARTIFACTS=("docker-compose.yml")
+DEPLOY_ARTIFACTS=("docker-compose.yml" "infra/deploy/.env.example")
+REQUIRED_RUNTIME_ENV_VARS=(
+  "POSTGRES_DB"
+  "POSTGRES_USER"
+  "POSTGRES_PASSWORD"
+  "JWT_KEY"
+  "HTTPS_CERT_PATH"
+  "HTTPS_CERT_PASSWORD"
+  "BootstrapAdmin__Username"
+  "BootstrapAdmin__Password"
+  "BootstrapAdmin__Email"
+  "BootstrapAdmin__FullName"
+)
 
 SSH_TARGET="${DEPLOY_USER}@${DEPLOY_HOST}"
 SSH_OPTS=(-i "$SSH_KEY_PATH" -o IdentitiesOnly=yes)
@@ -50,8 +62,18 @@ ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "mkdir -p '$DEPLOY_DIR'"
 
 log "Syncing deployment artifacts"
 for artifact in "${DEPLOY_ARTIFACTS[@]}"; do
-  log "Copying ${artifact}"
-  scp "${SSH_OPTS[@]}" "${REPO_ROOT}/${artifact}" "$SSH_TARGET:$DEPLOY_DIR/${artifact}"
+  destination="$(basename "$artifact")"
+  log "Copying ${artifact} to ${destination}"
+  scp "${SSH_OPTS[@]}" "${REPO_ROOT}/${artifact}" "$SSH_TARGET:$DEPLOY_DIR/${destination}"
+done
+
+log "Validating remote runtime configuration"
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "test -f '$DEPLOY_DIR/.env'" ||
+  fail "remote .env is missing at ${DEPLOY_DIR}/.env; copy .env.example to .env and fill runtime values on the server"
+
+for variable_name in "${REQUIRED_RUNTIME_ENV_VARS[@]}"; do
+  ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "grep -Eq '^${variable_name}=' '$DEPLOY_DIR/.env'" ||
+    fail "remote .env is missing required value: ${variable_name}"
 done
 
 log "Pulling container images"

@@ -57,8 +57,19 @@ docker compose up -d
 Synced files:
 
 - `docker-compose.yml`
+- `.env.example`
 
 The server must still provide runtime configuration required by the compose file, such as `.env` values, image repository/tag overrides, certificates, and any host-mounted files. Manage secrets and runtime environment values outside tracked files.
+
+On the EC2 instance, copy the example file once and fill in real runtime values on the server only:
+
+```sh
+cd /opt/backoffice-service-portal
+cp .env.example .env
+chmod 600 .env
+```
+
+Never commit `.env`. Required runtime categories are PostgreSQL, JWT signing, HTTPS certificate path/password, and bootstrap admin settings. The deploy script checks that `.env` exists and includes the required variable names before running `docker compose up -d`, but it does not validate secret strength.
 
 ## Verify
 

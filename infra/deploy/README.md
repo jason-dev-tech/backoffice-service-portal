@@ -29,6 +29,7 @@ export DEPLOY_USER="<ssh-user>"
 export DEPLOY_DIR="/opt/backoffice-service-portal"
 export SSH_KEY_PATH="/path/to/private-key.pem"
 export HEALTHCHECK_URL="https://<public-ip-or-dns-name>/health/ready"
+export ALLOW_SELF_SIGNED_CERT=false
 export DEPLOY_IMAGE_REPOSITORY="ghcr.io/<owner>/<image>"
 export DEPLOY_IMAGE_TAG="<commit-sha-or-latest>"
 ```
@@ -36,6 +37,8 @@ export DEPLOY_IMAGE_TAG="<commit-sha-or-latest>"
 Do not place secrets, credentials, or private values in these scripts.
 
 `HEALTHCHECK_URL` is optional. It can point to a backend readiness endpoint such as `/health/ready`.
+
+Set `ALLOW_SELF_SIGNED_CERT=true` only for development or self-signed certificate checks. Production should use a trusted CA certificate and should not rely on insecure TLS verification.
 
 `DEPLOY_IMAGE_REPOSITORY` and `DEPLOY_IMAGE_TAG` are consumed by `docker-compose.yml`. The CI workflow publishes both `latest` and the commit SHA; use the SHA tag for immutable deployments, or omit these values to use the compose defaults.
 

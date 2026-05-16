@@ -37,6 +37,12 @@ if [[ -n "${HEALTHCHECK_URL:-}" ]]; then
   require_command curl
 fi
 
+CURL_OPTS=(--fail --silent --show-error --location --max-time 15)
+
+if [[ "${ALLOW_SELF_SIGNED_CERT:-false}" == "true" ]]; then
+  CURL_OPTS+=(--insecure)
+fi
+
 SSH_TARGET="${DEPLOY_USER}@${DEPLOY_HOST}"
 SSH_OPTS=(-i "$SSH_KEY_PATH" -o IdentitiesOnly=yes)
 
@@ -58,7 +64,10 @@ pass "Remote Docker Compose status command completed"
 
 if [[ -n "${HEALTHCHECK_URL:-}" ]]; then
   log "Checking application health at ${HEALTHCHECK_URL}"
-  curl --fail --silent --show-error --location --max-time 15 "$HEALTHCHECK_URL" >/dev/null
+  if [[ "${ALLOW_SELF_SIGNED_CERT:-false}" == "true" ]]; then
+    log "Self-signed certificate verification is allowed for this health check"
+  fi
+  curl "${CURL_OPTS[@]}" "$HEALTHCHECK_URL" >/dev/null
   pass "Application health check succeeded"
 else
   log "Skipping HTTP health check because HEALTHCHECK_URL is not set"

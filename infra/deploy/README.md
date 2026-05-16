@@ -40,14 +40,18 @@ Run from your workstation:
 ./deploy.sh
 ```
 
-The script creates the remote deployment directory if it is missing, includes a placeholder for copying deployment artifacts, then runs:
+The script creates the remote deployment directory if it is missing, syncs the tracked deployment artifact, then runs:
 
 ```sh
 docker compose pull
 docker compose up -d
 ```
 
-The remote deployment directory must already contain the required Docker Compose files and runtime configuration. Deployment will fail until artifact syncing is implemented if those files are missing.
+Synced files:
+
+- `docker-compose.yml`
+
+The server must still provide runtime configuration required by the compose file, such as `.env` values, certificates, and any host-mounted files. Manage secrets and runtime environment values outside tracked files.
 
 ## Verify
 

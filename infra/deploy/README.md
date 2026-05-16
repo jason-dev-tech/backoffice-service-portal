@@ -28,9 +28,12 @@ export DEPLOY_HOST="<public-ip-or-dns-name>"
 export DEPLOY_USER="<ssh-user>"
 export DEPLOY_DIR="/opt/backoffice-service-portal"
 export SSH_KEY_PATH="/path/to/private-key.pem"
+export HEALTHCHECK_URL="https://<public-ip-or-dns-name>/health/ready"
 ```
 
 Do not place secrets, credentials, or private values in these scripts.
+
+`HEALTHCHECK_URL` is optional. It can point to a backend readiness endpoint such as `/health/ready`.
 
 ## Deploy
 
@@ -61,7 +64,7 @@ Run:
 ./verify-deployment.sh
 ```
 
-The verification script checks SSH connectivity, remote Docker availability, and the remote deployment directory.
+The verification script checks SSH connectivity, remote Docker availability, the remote deployment directory, and `docker compose ps`. If `HEALTHCHECK_URL` is set, it also checks the application health URL.
 
 ## Manual GitHub Actions Deployment
 

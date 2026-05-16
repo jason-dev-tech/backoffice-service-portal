@@ -33,6 +33,10 @@ require_env DEPLOY_USER
 require_env DEPLOY_DIR
 require_env SSH_KEY_PATH
 
+if [[ -n "${HEALTHCHECK_URL:-}" ]]; then
+  require_command curl
+fi
+
 SSH_TARGET="${DEPLOY_USER}@${DEPLOY_HOST}"
 SSH_OPTS=(-i "$SSH_KEY_PATH" -o IdentitiesOnly=yes)
 
@@ -47,5 +51,17 @@ pass "Docker is available remotely"
 log "Checking deployment directory at ${DEPLOY_DIR}"
 ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "test -d '$DEPLOY_DIR'"
 pass "Deployment directory exists remotely"
+
+log "Checking remote Docker Compose services"
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "cd '$DEPLOY_DIR' && docker compose ps"
+pass "Remote Docker Compose status command completed"
+
+if [[ -n "${HEALTHCHECK_URL:-}" ]]; then
+  log "Checking application health at ${HEALTHCHECK_URL}"
+  curl --fail --silent --show-error --location --max-time 15 "$HEALTHCHECK_URL" >/dev/null
+  pass "Application health check succeeded"
+else
+  log "Skipping HTTP health check because HEALTHCHECK_URL is not set"
+fi
 
 pass "Deployment verification complete"

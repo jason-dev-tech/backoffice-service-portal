@@ -16,6 +16,13 @@ This runbook covers the lightweight EC2 Docker deployment workflow.
 - GHCR login is completed on EC2 if the package is private.
 - `.env` exists in `DEPLOY_DIR`, copied from `.env.example` and filled on the server.
 - HTTPS certificate file exists on EC2 at `HTTPS_CERT_HOST_PATH`.
+- Any environment-specific Compose overrides are kept in untracked files on EC2.
+
+## Compose Overrides
+
+Use the tracked `docker-compose.yml` as the base deployment definition. If an environment needs local runtime changes, create an untracked `docker-compose.override.yml` in `DEPLOY_DIR` using `docker-compose.override.yml.example` as a starting point.
+
+Do not commit real `.env` files, secrets, certificates, or host-specific private values. Avoid editing the tracked `docker-compose.yml` directly on EC2 because `deploy.sh` overwrites it during deployment.
 
 ## Standard Commands
 

@@ -64,6 +64,8 @@ Synced files:
 - `docker-compose.yml`
 - `.env.example`
 
+Use the tracked `docker-compose.yml` as the base deployment definition. For EC2-specific runtime changes, create untracked override files such as `docker-compose.override.yml` directly in `DEPLOY_DIR`. Do not edit the tracked `docker-compose.yml` on EC2 because `deploy.sh` will overwrite it on the next deployment.
+
 The server must still provide runtime configuration required by the compose file, such as `.env` values, image repository/tag overrides, certificates, and any host-mounted files. Manage secrets and runtime environment values outside tracked files.
 
 For HTTPS certificates, `HTTPS_CERT_HOST_PATH` is the source file on the EC2 host and `HTTPS_CERT_PATH` is the path inside the backend container that Kestrel reads. The certificate file must exist on the EC2 host before deployment. If the source path is wrong or missing, Docker can create a directory instead of mounting the intended certificate file.
@@ -76,7 +78,7 @@ cp .env.example .env
 chmod 600 .env
 ```
 
-Never commit `.env`. Required runtime categories are PostgreSQL, JWT signing, HTTPS certificate host path/container path/password, and bootstrap admin settings. The deploy script checks that `.env` exists, includes the required variable names, and that `HTTPS_CERT_HOST_PATH` points to an existing certificate file before running `docker compose up -d`, but it does not validate secret strength.
+Never commit `.env`, real secrets, certificates, or host-specific private values. Required runtime categories are PostgreSQL, JWT signing, HTTPS certificate host path/container path/password, and bootstrap admin settings. The deploy script checks that `.env` exists, includes the required variable names, and that `HTTPS_CERT_HOST_PATH` points to an existing certificate file before running `docker compose up -d`, but it does not validate secret strength.
 
 ## Verify
 

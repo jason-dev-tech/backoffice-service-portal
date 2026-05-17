@@ -11,6 +11,8 @@ It assumes:
 
 This is a simple operational foundation, not a full CI/CD platform yet.
 
+See `RUNBOOK.md` for the end-to-end deployment checklist and troubleshooting commands.
+
 ## Workflow
 
 1. SSH to the EC2 instance.

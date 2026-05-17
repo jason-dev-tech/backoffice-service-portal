@@ -90,6 +90,14 @@ Run:
 
 The verification script checks SSH connectivity, remote Docker availability, the remote deployment directory, and `docker compose ps`. If `HEALTHCHECK_URL` is set, it also checks the application health URL.
 
+For read-only runtime inspection, run:
+
+```sh
+./inspect-runtime.sh
+```
+
+The inspection helper prints Compose status, backend log tail, service image summary, and disk usage without printing `.env` contents.
+
 ## Manual GitHub Actions Deployment
 
 The repository includes a manual `Remote Deploy` workflow that runs the same verification and deployment scripts from GitHub Actions.

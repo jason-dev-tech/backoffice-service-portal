@@ -34,6 +34,14 @@ docker compose logs backend --tail=100
 docker compose config
 ```
 
+From your workstation, use the read-only inspection helper:
+
+```sh
+./inspect-runtime.sh
+```
+
+It prints Compose status, backend log tail, service image summary, and disk usage without printing `.env` contents.
+
 For development checks with a self-signed certificate:
 
 ```sh

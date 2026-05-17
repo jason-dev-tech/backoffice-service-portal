@@ -73,6 +73,8 @@ model:
 
 ## 🚚 Deployment Overview
 
+-   **OpenTofu** provisions the AWS deployment foundation, including EC2,
+    a security group, and optional Elastic IP support
 -   The application is deployed to a single **AWS EC2** instance
 -   Public traffic is exposed on **HTTPS 443 only**
 -   **Kestrel** terminates HTTPS using a mounted certificate
@@ -112,10 +114,22 @@ The deployment path is intentionally lightweight and production-style
 without claiming enterprise scale:
 
 ``` text
-GitHub Actions -> GHCR -> EC2 -> Docker Compose -> ASP.NET Core + PostgreSQL
+OpenTofu -> AWS EC2/Security Group -> GitHub Actions -> GHCR -> Docker Compose -> ASP.NET Core + PostgreSQL
 ```
 
-Implemented operational capabilities include:
+Repository deployment capabilities are split into three layers:
+
+-   **Infrastructure provisioning**: OpenTofu defines the AWS foundation
+    for the EC2 host, security group, configurable SSH access, HTTPS
+    access, and optional Elastic IP
+-   **Deployment automation**: GitHub Actions publishes the application
+    image to GHCR, and EC2 deployment scripts sync Compose artifacts,
+    validate runtime configuration, pull images, and restart services
+-   **Operational tooling**: verification, runtime inspection,
+    conservative Docker cleanup, runbook troubleshooting, and Compose
+    override guidance support day-to-day operation
+
+Implemented capabilities include:
 
 -   GHCR image publishing with both `latest` and commit SHA tags
 -   EC2 Docker deployment using a prebuilt application image

@@ -106,6 +106,41 @@ model:
 
 ------------------------------------------------------------------------
 
+## Deployment & Operations
+
+The deployment path is intentionally lightweight and production-style
+without claiming enterprise scale:
+
+``` text
+GitHub Actions -> GHCR -> EC2 -> Docker Compose -> ASP.NET Core + PostgreSQL
+```
+
+Implemented operational capabilities include:
+
+-   GHCR image publishing with both `latest` and commit SHA tags
+-   EC2 Docker deployment using a prebuilt application image
+-   HTTPS/TLS runtime configuration through mounted certificates
+-   Runtime `.env` validation before Compose startup
+-   Deployment verification for SSH, Docker, Compose status, and health
+    endpoints
+-   Optional self-signed certificate verification support for
+    development checks
+-   Runtime inspection helper for Compose status, backend logs, image
+    summary, and disk usage
+-   Conservative Docker maintenance helper for unused images, stopped
+    containers, and builder cache
+-   Deployment runbook with troubleshooting for GHCR auth, missing
+    runtime config, certificate mounts, and restarting services
+-   Compose override guidance for environment-specific changes without
+    editing the tracked base Compose file
+
+Operational debugging is centered on health checks, certificate mount
+preflight validation, runtime inspection, and the deployment runbook.
+Secrets, certificates, and host-specific values are kept out of tracked
+files.
+
+------------------------------------------------------------------------
+
 ## 🗄️ Data Architecture
 
 -   **PostgreSQL** is the system of record for structured transactional

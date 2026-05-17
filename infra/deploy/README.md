@@ -98,6 +98,14 @@ For read-only runtime inspection, run:
 
 The inspection helper prints Compose status, backend log tail, service image summary, and disk usage without printing `.env` contents.
 
+For conservative Docker cleanup, run:
+
+```sh
+./maintenance.sh
+```
+
+The maintenance helper removes unused Docker images, stopped containers, and unused builder cache only. It does not remove running containers or named volumes.
+
 ## Manual GitHub Actions Deployment
 
 The repository includes a manual `Remote Deploy` workflow that runs the same verification and deployment scripts from GitHub Actions.

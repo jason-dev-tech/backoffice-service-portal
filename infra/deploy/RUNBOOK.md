@@ -42,6 +42,14 @@ From your workstation, use the read-only inspection helper:
 
 It prints Compose status, backend log tail, service image summary, and disk usage without printing `.env` contents.
 
+For conservative Docker cleanup from your workstation:
+
+```sh
+./maintenance.sh
+```
+
+This removes unused Docker images, stopped containers, and unused builder cache only. It does not remove running containers or named volumes.
+
 For development checks with a self-signed certificate:
 
 ```sh

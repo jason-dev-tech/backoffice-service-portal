@@ -74,7 +74,7 @@ cp .env.example .env
 chmod 600 .env
 ```
 
-Never commit `.env`. Required runtime categories are PostgreSQL, JWT signing, HTTPS certificate host path/container path/password, and bootstrap admin settings. The deploy script checks that `.env` exists and includes the required variable names before running `docker compose up -d`, but it does not validate secret strength.
+Never commit `.env`. Required runtime categories are PostgreSQL, JWT signing, HTTPS certificate host path/container path/password, and bootstrap admin settings. The deploy script checks that `.env` exists, includes the required variable names, and that `HTTPS_CERT_HOST_PATH` points to an existing certificate file before running `docker compose up -d`, but it does not validate secret strength.
 
 ## Verify
 

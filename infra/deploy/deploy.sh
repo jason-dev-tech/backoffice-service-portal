@@ -76,6 +76,15 @@ for variable_name in "${REQUIRED_RUNTIME_ENV_VARS[@]}"; do
     fail "remote .env is missing required value: ${variable_name}"
 done
 
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "grep -Eq '^HTTPS_CERT_HOST_PATH=.+' '$DEPLOY_DIR/.env'" ||
+  fail "remote .env is missing required value: HTTPS_CERT_HOST_PATH"
+
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "cert_path=\$(awk -F= '\$1 == \"HTTPS_CERT_HOST_PATH\" { print substr(\$0, index(\$0, \"=\") + 1); exit }' '$DEPLOY_DIR/.env'); test -e \"\$cert_path\"" ||
+  fail "certificate path from HTTPS_CERT_HOST_PATH does not exist on the remote host"
+
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "cert_path=\$(awk -F= '\$1 == \"HTTPS_CERT_HOST_PATH\" { print substr(\$0, index(\$0, \"=\") + 1); exit }' '$DEPLOY_DIR/.env'); test ! -d \"\$cert_path\"" ||
+  fail "certificate path from HTTPS_CERT_HOST_PATH is a directory, expected a certificate file"
+
 log "Pulling container images"
 ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "cd '$DEPLOY_DIR' && docker compose pull"
 

@@ -83,6 +83,17 @@ model:
 -   The EC2 host is **deploy-only**: it pulls a prebuilt container image
     from **GitHub Container Registry (GHCR)** and restarts services
 
+### React Azure Static Web Apps Demo
+
+`react-frontend/` is a separate **React + Vite** deployment demo for
+**Azure Static Web Apps**. It is an additional static frontend deployment
+path that connects to the existing ASP.NET Core API through
+`VITE_API_BASE_URL`.
+
+The React frontend does **not** replace the primary Angular frontend. The
+main production-style deployment remains the compiled Angular SPA served by
+ASP.NET Core/Kestrel from the containerized application on **AWS EC2**.
+
 ### Runtime Architecture
 
 -   Browser requests `https://<host>/`
@@ -131,6 +142,7 @@ model:
 -   xUnit
 -   Testcontainers for PostgreSQL
 -   Docker
+-   React + Vite Azure Static Web Apps deployment demo
 
 ------------------------------------------------------------------------
 

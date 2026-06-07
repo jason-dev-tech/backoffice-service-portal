@@ -1,0 +1,22 @@
+# Example only. Do not copy secrets into this file.
+#
+# To use on EC2, copy this to docker-compose.override.yml in DEPLOY_DIR and
+# adjust non-secret environment-specific settings there.
+
+services:
+  backend:
+    restart: unless-stopped
+    environment:
+      # Optional non-secret example. Secret values belong in .env.
+      ASPNETCORE_ENVIRONMENT: Production
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  postgres:
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

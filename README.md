@@ -73,8 +73,10 @@ model:
 
 ## 🚚 Deployment Overview
 
+-   **OpenTofu** provisions the AWS deployment foundation, including EC2,
+    a security group, and optional Elastic IP support
 -   The application is deployed to a single **AWS EC2** instance
--   Public traffic is exposed on **HTTPS 443 only**
+-   Public application traffic is exposed on **HTTPS 443**
 -   **Kestrel** terminates HTTPS using a mounted certificate
 -   The **Angular frontend is served as static files by the ASP.NET Core
     app**, so the UI and API share the same host
@@ -114,6 +116,74 @@ ASP.NET Core/Kestrel from the containerized application on **AWS EC2**.
     separating CI build concerns from EC2 runtime concerns
 -   **Containerized Postgres with persistent volume storage** keeps the
     stack self-contained for a portfolio environment
+
+------------------------------------------------------------------------
+
+## Infrastructure as Code (IaC)
+
+The project includes a lightweight **Infrastructure as Code (IaC)**
+foundation implemented with **OpenTofu**. The configuration is
+Terraform-compatible and is kept under `infra/` to provision the AWS
+deployment host in a repeatable, version-controlled way.
+
+Implemented OpenTofu provisioning covers:
+
+-   One **AWS EC2** instance for the application host
+-   One **AWS Security Group** with HTTPS access and configurable SSH access
+-   Optional **Elastic IP** allocation and association for a stable public IP
+
+Infrastructure provisioning is separate from deployment and runtime
+operations. OpenTofu creates the AWS host and network access layer. Docker
+deployment, runtime environment configuration, TLS certificates, application
+deployment, and operational verification are handled separately through
+deployment scripts, Docker Compose, and GitHub Actions workflows.
+
+------------------------------------------------------------------------
+
+## Deployment & Operations
+
+The deployment path is intentionally lightweight and production-style
+without claiming enterprise scale:
+
+``` text
+OpenTofu -> AWS EC2 + Security Group + optional Elastic IP -> GitHub Actions -> GHCR -> Docker Compose -> ASP.NET Core + PostgreSQL
+```
+
+Repository deployment capabilities are split into three layers:
+
+-   **Infrastructure provisioning**: OpenTofu defines the AWS foundation
+    for the EC2 host, security group, configurable SSH access, HTTPS
+    access, and optional Elastic IP
+-   **Deployment automation**: GitHub Actions publishes the application
+    image to GHCR, and EC2 deployment scripts sync Compose artifacts,
+    validate runtime configuration, pull images, and restart services
+-   **Operational tooling**: verification, runtime inspection,
+    conservative Docker cleanup, runbook troubleshooting, and Compose
+    override guidance support day-to-day operation
+
+Implemented capabilities include:
+
+-   GHCR image publishing with both `latest` and commit SHA tags
+-   EC2 Docker deployment using a prebuilt application image
+-   HTTPS/TLS runtime configuration through mounted certificates
+-   Runtime `.env` validation before Compose startup
+-   Deployment verification for SSH, Docker, Compose status, and health
+    endpoints
+-   Optional self-signed certificate verification support for
+    development checks
+-   Runtime inspection helper for Compose status, backend logs, image
+    summary, and disk usage
+-   Conservative Docker maintenance helper for unused images, stopped
+    containers, and builder cache
+-   Deployment runbook with troubleshooting for GHCR auth, missing
+    runtime config, certificate mounts, and restarting services
+-   Compose override guidance for environment-specific changes without
+    editing the tracked base Compose file
+
+Operational debugging is centered on health checks, certificate mount
+preflight validation, runtime inspection, and the deployment runbook.
+Secrets, certificates, and host-specific values are kept out of tracked
+files.
 
 ------------------------------------------------------------------------
 
@@ -271,8 +341,20 @@ This project uses **GitHub Actions** for both validation and deployment.
 -   Build and test the backend with **.NET 8**
 -   Build and test the frontend with **Angular + Vitest**
 -   Run the backend and frontend jobs independently in CI
--   Publish the production container image to **GHCR** only after both
+-   Publish the production container image to **GHCR** only after the
     required jobs succeed on `push` to `main`
+-   Publish both `latest` and the commit SHA tag for the container image
+
+### Container Image Tags
+
+-   `latest` is convenient for simple deployments that should always
+    pull the newest successful `main` image
+-   Commit SHA tags are better for immutable, traceable deployments
+-   `docker-compose.yml` supports `DEPLOY_IMAGE_REPOSITORY` and
+    `DEPLOY_IMAGE_TAG` so the deployed image can be selected through
+    environment configuration
+-   Do not put secrets, credentials, or private values in image
+    configuration
 
 ### CD Flow
 

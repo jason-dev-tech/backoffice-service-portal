@@ -76,7 +76,7 @@ model:
 -   **OpenTofu** provisions the AWS deployment foundation, including EC2,
     a security group, and optional Elastic IP support
 -   The application is deployed to a single **AWS EC2** instance
--   Public traffic is exposed on **HTTPS 443 only**
+-   Public application traffic is exposed on **HTTPS 443**
 -   **Kestrel** terminates HTTPS using a mounted certificate
 -   The **Angular frontend is served as static files by the ASP.NET Core
     app**, so the UI and API share the same host
@@ -108,13 +108,34 @@ model:
 
 ------------------------------------------------------------------------
 
+## Infrastructure as Code (IaC)
+
+The project includes a lightweight **Infrastructure as Code (IaC)**
+foundation implemented with **OpenTofu**. The configuration is
+Terraform-compatible and is kept under `infra/` to provision the AWS
+deployment host in a repeatable, version-controlled way.
+
+Implemented OpenTofu provisioning covers:
+
+-   One **AWS EC2** instance for the application host
+-   One **AWS Security Group** with HTTPS access and configurable SSH access
+-   Optional **Elastic IP** allocation and association for a stable public IP
+
+Infrastructure provisioning is separate from deployment and runtime
+operations. OpenTofu creates the AWS host and network access layer. Docker
+deployment, runtime environment configuration, TLS certificates, application
+deployment, and operational verification are handled separately through
+deployment scripts, Docker Compose, and GitHub Actions workflows.
+
+------------------------------------------------------------------------
+
 ## Deployment & Operations
 
 The deployment path is intentionally lightweight and production-style
 without claiming enterprise scale:
 
 ``` text
-OpenTofu -> AWS EC2/Security Group -> GitHub Actions -> GHCR -> Docker Compose -> ASP.NET Core + PostgreSQL
+OpenTofu -> AWS EC2 + Security Group + optional Elastic IP -> GitHub Actions -> GHCR -> Docker Compose -> ASP.NET Core + PostgreSQL
 ```
 
 Repository deployment capabilities are split into three layers:
